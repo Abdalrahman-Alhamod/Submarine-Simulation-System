@@ -8,7 +8,6 @@ import GUI from 'lil-gui'
  */
 const gui = new GUI({ width: 300 })
 // gui.close()
-
 // gui.hide()
 
 /**
@@ -23,20 +22,41 @@ const scene = new THREE.Scene()
 /**
  * Axes Helper
  */
-const axesHelper = new THREE.AxesHelper(10000);
-axesHelper
-scene.add(axesHelper)
+const scaneControls = {
+    axesHelper: true,
+}
 
+const axesHelper = new THREE.AxesHelper(10000);
+scene.add(axesHelper)
+gui
+    .add(scaneControls, 'axesHelper')
+    .name('Show Axes')
+    .onChange(
+        (isShowed) => {
+            if (isShowed) { scene.add(axesHelper) }
+            else { scene.remove(axesHelper) }
+        }
+    )
+
+/**
+ * Textures
+ */
+const textureLoader = new THREE.TextureLoader()
+const dirtTexture = textureLoader.load('/textures/env/dirt.jpg')
+dirtTexture.repeat.x = 1000
+dirtTexture.repeat.y = 1000
+dirtTexture.wrapS = THREE.MirroredRepeatWrapping
+dirtTexture.wrapT = THREE.MirroredRepeatWrapping
+const stonesTexture = textureLoader.load('/textures/env/stones.jpg')
 
 /**
  * Floor
  */
-const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(10000, 10000),
-    new THREE.MeshBasicMaterial({
-        color: '#070619',
-    })
-)
+const floorGeometry = new THREE.PlaneGeometry(10000, 10000)
+const floorMaterial = new THREE.MeshBasicMaterial()
+floorMaterial.map = dirtTexture
+floorMaterial.color = new THREE.Color('#07066F')
+const floor = new THREE.Mesh(floorGeometry, floorMaterial)
 floor.position.y = -10
 floor.receiveShadow = true
 floor.rotation.x = - Math.PI * 0.5
@@ -52,9 +72,7 @@ const surface = new THREE.Mesh(
         side: THREE.DoubleSide
     })
 )
-
 surface.position.y = 10
-surface.receiveShadow = true
 surface.rotation.x = - Math.PI * 0.5
 scene.add(surface)
 
@@ -62,15 +80,14 @@ scene.add(surface)
  * Ocean effect
  */
 scene.background = new THREE.Color(0x07062e);
-
-scene.fog = new THREE.Fog(0x07062e, 1, 100);
+scene.fog = new THREE.Fog(0x07062e, 1, 10000);
 
 /**
  * Lights
  */
-const color = new THREE.Color(0xeeeeee)
-// Ambient Light: Lower intensity to avoid overexposure
+const color = new THREE.Color('#0706FF')
 const ambientLight = new THREE.AmbientLight(color, 0.6);
+
 scene.add(ambientLight);
 
 const createDirectionalLight = (color, intensity, position) => {
@@ -93,10 +110,6 @@ scene.add(directionalLight);
 const directionalLight2 = createDirectionalLight(color, 10, [-10, 5, 10]);
 scene.add(directionalLight2);
 
-// const directionalLight3 = createDirectionalLight(color, 10, [10, 5, -10]);
-// scene.add(directionalLight3);
-
-
 const pointLight = new THREE.PointLight(color, 10.5);
 pointLight.position.set(2, 3, 2);
 scene.add(pointLight);
@@ -117,7 +130,8 @@ scene.add(spotLight);
  */
 const gtflLoader = new GLTFLoader();
 let submarine = null
-gtflLoader.load('models/OhioSubmarine/scene.gltf', function (gltf) {
+const submarineModelPath = 'models/OhioSubmarine/glb/ohio-submarine.glb'
+gtflLoader.load(submarineModelPath, function (gltf) {
     submarine = gltf.scene
     submarine.scale.set(0.05, 0.05, 0.05)
     submarine.rotation.y = Math.PI
@@ -151,25 +165,6 @@ window.addEventListener('resize', () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
-window.addEventListener('dblclick', () => {
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-
-    if (!fullscreenElement) {
-        if (canvas.requestFullscreen) {
-            canvas.requestFullscreen()
-        }
-        else if (canvas.webkitRequestFullscreen) {
-            canvas.webkitRequestFullscreen()
-        }
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen()
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen()
-        }
-    }
-})
-
 /**
  * Camera
  */
@@ -192,13 +187,12 @@ controls.listenToKeyEvents(window);
  */
 const geometry = new THREE.ConeGeometry(1, 3, 4, 1);
 const material = new THREE.MeshBasicMaterial({ color: 0x111177 });
-
+material.map = stonesTexture
 for (let i = 0; i < 5000; i++) {
-
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.x = (Math.random() - 0.5) * 1000;
-    mesh.position.y = 0;
-    mesh.position.z = (Math.random() - 0.5) * 1000;
+    mesh.position.x = (Math.random() - 0.5) * 2000;
+    mesh.position.y = (Math.random() - 0.5) * 10;
+    mesh.position.z = (Math.random() - 0.5) * 2000;
     scene.add(mesh);
 }
 
@@ -213,11 +207,6 @@ renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-
-/**
- * Animate
- */
-const clock = new THREE.Clock()
 
 /**
  * Simulation
@@ -245,33 +234,33 @@ var knots = () => {
     return round(velocity * 1.943844);
 }
 
-let preset = {};
-const submarineParameters = {
-    emptyMass: 0,
-    totalMass: 0,
-    maxDepth: 0,
-    length: 0,
-    width: 0,
-    volume: 0,
-    rotorDiameter: 0,
-    rotorRoundPerSecond: 0,
-    sternPlaneArea: 0,
-    rudderPlaneArea: 0,
-    fairwaterPlaneArea: 0,
-    cDrag: 0,
-    kt: 0,
-    cStern: 0,
-    cRudder: 0,
-    cFairetwater: 0,
-    waterDensity: 0,
-    savePreset() {
-        // save current values to an object
-        preset = gui.save();
-        loadButton.enable();
-    },
+const ohioSubmarineParamters = {
+    emptyMass: 16764000,
+    totalMass: 18750000,
+    maxDepth: 240,
+    length: 170,
+    width: 13,
+    volume: 18292.683,
+    rotorDiameter: 4,
+    rotorRoundPerSecond: 10,
+    sternPlaneArea: 15,
+    rudderPlaneArea: 10,
+    fairwaterPlaneArea: 4,
+    cDrag: 1.9,
+    kt: 0.8044923775964,
+    cStern: 1.5,
+    cRudder: 0.8,
+    cFairetwater: 0.3,
+    waterDensity: 1025,
+    gravity: 9.8,
     loadPreset() {
-        gui.load(preset);
+        submarineParametersFolder.load(preset);
     },
+    weight: 0,
+    buoyancy: 0,
+    thrust: 0,
+    drag: 0,
+    acceleration: 0,
     speed: 0,
     rpm: 0,
     currentSpeed: meterPerSecond,
@@ -280,40 +269,105 @@ const submarineParameters = {
     positionZ: 0,
 
 }
+
+const typhonSubmarineParamters = {
+    emptyMass: 23200000,
+    totalMass: 48000000,
+    maxDepth: 400,
+    length: 175,
+    width: 23,
+    volume: 46829.27,
+    rotorDiameter: 7,
+    rotorRoundPerSecond: 10,
+    sternPlaneArea: 20,
+    rudderPlaneArea: 12,
+    fairwaterPlaneArea: 5,
+    cDrag: 1.9,
+    kt: 0.317622429678,
+    cStern: 1.7,
+    cRudder: 0.78,
+    cFairetwater: 0.5,
+    waterDensity: 1025,
+    gravity: 9.8,
+    loadPreset() {
+        submarineParametersFolder.load(preset);
+    },
+    weight: 0,
+    buoyancy: 0,
+    thrust: 0,
+    drag: 0,
+    acceleration: 0,
+    speed: 0,
+    rpm: 0,
+    currentSpeed: meterPerSecond,
+    positionX: 0,
+    positionY: 0,
+    positionZ: 0,
+
+}
+
+const switchSubmarineParameters = (submarineType) => {
+    let newParams;
+
+    if (submarineType === 'Ohio') {
+        newParams = ohioSubmarineParamters;
+    } else if (submarineType === 'Typhon') {
+        newParams = typhonSubmarineParamters;
+    }
+
+    // Manually update each parameter
+    for (let key in newParams) {
+        submarineParametersFolder.controllers.forEach(controller => {
+            if (controller.property === key) {
+                controller.setValue(newParams[key]);
+            }
+        });
+    }
+    preset = submarineParametersFolder.save();
+    simulationControls.resetSimulation()
+};
+
+const submarineOptions = {
+    type: 'Ohio',
+};
+
+
+let submarineParameters = { ...ohioSubmarineParamters }
 const submarineParametersFolder = gui.addFolder("Submarine Parameters")
+submarineParametersFolder.add(submarineOptions, 'type', ['Ohio', 'Typhon']).name("Select Submarine").onChange((type) => { switchSubmarineParameters(type) });
 submarineParametersFolder
     .add(submarineParameters, 'emptyMass')
-    .name("Empty Mass")
+    .name("Empty Mass (Kg)")
 submarineParametersFolder
     .add(submarineParameters, 'totalMass')
-    .name("Total Mass")
+    .name("Total Mass (Kg)")
 submarineParametersFolder
     .add(submarineParameters, 'maxDepth')
-    .name("Max Depth")
+    .name("Max Depth (m)")
 submarineParametersFolder
     .add(submarineParameters, 'length')
-    .name("Length")
+    .name("Length (m)")
 submarineParametersFolder
     .add(submarineParameters, 'width')
-    .name("Width")
+    .name("Width (m)")
 submarineParametersFolder
     .add(submarineParameters, 'volume')
-    .name("Volume")
+    .name("Volume (m³)")
 submarineParametersFolder
     .add(submarineParameters, 'rotorDiameter')
-    .name("Rotor Diameter")
+    .name("Rotor Diameter (m)")
 submarineParametersFolder
     .add(submarineParameters, 'rotorRoundPerSecond')
-    .name("Rotor Rounds Per Second")
+    .name("Rotor Rounds Per Second (RPS)")
 submarineParametersFolder
     .add(submarineParameters, 'sternPlaneArea')
-    .name("Stern Plane Area")
+    .name("Stern Plane Area (m²)")
 submarineParametersFolder
     .add(submarineParameters, 'rudderPlaneArea')
-    .name("Rudder Plane Area")
+    .name("Rudder Plane Area (m²)")
 submarineParametersFolder
     .add(submarineParameters, 'fairwaterPlaneArea')
-    .name("Fairwater Plane Area")
+    .name("Fairwater Plane Area (m²)")
 submarineParametersFolder
     .add(submarineParameters, 'cDrag')
     .name("Drag Coefficient")
@@ -331,73 +385,128 @@ submarineParametersFolder
     .name("Fairwater Coefficient")
 submarineParametersFolder
     .add(submarineParameters, 'waterDensity')
-    .name("Water Density")
+    .name("Water Density (kg/m³)")
+submarineParametersFolder
+    .add(submarineParameters, 'gravity')
+    .name("Gravity (m/s²)")
 
-submarineParametersFolder.add(submarineParameters, 'savePreset').name("Save Preset")
-const loadButton = submarineParametersFolder.add(submarineParameters, 'loadPreset').name("Load Preset")
-loadButton.disable()
+let preset = submarineParametersFolder.save();
+submarineParametersFolder.add(submarineParameters, 'loadPreset').name("Load Preset")
 submarineParametersFolder.close()
 
-submarineParametersFolder.destroy()
+let simulate = false;
+let intervalId;
+let elapsedTime = 0;
+let startTime = 0;
+const simulationControls = {
+    time: 0,
+    startSimulation: () => {
+        if (!simulate) {
+            simulate = true;
+            startTime = Date.now() - elapsedTime;
+            intervalId = window.setInterval(updateVelocity, interval);
+            startButton.disable();
+            pauseBotton.enable();
+            resetButton.enable()
+        }
+    },
+    pauseSimulation: () => {
+        if (simulate) {
+            simulate = false;
+            elapsedTime = Date.now() - startTime;
+            clearInterval(intervalId);
+            startButton.enable();
+            pauseBotton.disable();
+        }
+    },
+    resetSimulation: () => {
+        simulate = false;
+        clearInterval(intervalId);
+        elapsedTime = 0;
+        startTime = 0;
+        currentTick = 0;
+        velocity0 = 0;
+        x0 = 0;
+        velocity = 0;
+        rotorRoundPerSecond = 0;
 
-gui.add(submarineParameters, 'rpm').name("Rotor RPM").listen().disable()
-gui.add(submarineParameters, 'currentSpeed', { Knots: knots, km: kiloMeterPerHour, ms: meterPerSecond }).name("Speed Unit")
-gui.add(submarineParameters, 'speed').name("Speed").listen().disable()
-gui.add(submarineParameters, 'positionX').name("Position X").listen().disable()
-gui.add(submarineParameters, 'positionY').name("Position Y").listen().disable()
-gui.add(submarineParameters, 'positionZ').name("Position Z").listen().disable()
+        // Reset submarine parameters
+        submarineParameters.speed = 0;
+        submarineParameters.positionX = 0;
+        submarineParameters.positionY = 0;
+        submarineParameters.positionZ = 0;
+        submarineParameters.thrust = 0;
+        submarineParameters.drag = 0;
+        submarineParameters.acceleration = 0;
+        submarineParameters.rpm = 0;
 
-const mass = 48000000;
-const gravity = 9.8;
-const height = 175;
-const width = 23;
-const volume = 46829.27;
-const cd = 1.9;
-const waterDensity = 1025;
-const kt = 0.317622429678;
-// const kt = 0.4;
+        // Reset GUI elements
+        simulationControls.time = 0;
+
+        // Reset submarine position in the scene
+        if (submarine != null) {
+            submarine.position.set(0, 0, 0);
+            controls.target = submarine.position;
+        }
+
+        startButton.enable();
+        pauseBotton.disable();
+        resetButton.disable();
+    }
+}
+
+const SimulationFolder = gui.addFolder("Simulation")
+SimulationFolder.add(simulationControls, 'time').name("Elapsed Time (s)").listen().disable()
+const startButton = SimulationFolder.add(simulationControls, 'startSimulation').name("Start Simulation").listen()
+const pauseBotton = SimulationFolder.add(simulationControls, 'pauseSimulation').name("Pause Simulation").listen()
+pauseBotton.disable()
+const resetButton = SimulationFolder.add(simulationControls, 'resetSimulation').name("Reset Simulation").listen()
+resetButton.disable()
+SimulationFolder.add(submarineParameters, 'weight').name("Weight (N)").listen().disable()
+SimulationFolder.add(submarineParameters, 'buoyancy').name("Buoyancy (N)").listen().disable()
+SimulationFolder.add(submarineParameters, 'thrust').name("Thrust (N)").listen().disable()
+SimulationFolder.add(submarineParameters, 'drag').name("Drag (N)").listen().disable()
+SimulationFolder.add(submarineParameters, 'acceleration').name("Acceleration (m/s²)").listen().disable()
+SimulationFolder.add(submarineParameters, 'rpm').name("Rotor RPM").listen().disable()
+SimulationFolder.add(submarineParameters, 'currentSpeed', { Knots: knots, km: kiloMeterPerHour, ms: meterPerSecond }).name("Speed Unit")
+SimulationFolder.add(submarineParameters, 'speed').name("Speed").listen().disable()
+SimulationFolder.add(submarineParameters, 'positionX').name("Position X").listen().disable()
+SimulationFolder.add(submarineParameters, 'positionY').name("Position Y").listen().disable()
+SimulationFolder.add(submarineParameters, 'positionZ').name("Position Z").listen().disable()
+
 var rotorRoundPerSecond = 0;
-const fanDiameter = 7;
-const crossSectionalArea = 415.48;
 var velocity = 0;
 
-const weight = mass * gravity;
-console.log("Weight = " + weight);
-const buoyancy = waterDensity * gravity * volume;
-console.log("Buoyancy = " + buoyancy);
-var thrust = kt * waterDensity * Math.pow(rotorRoundPerSecond, 2) * Math.pow(fanDiameter, 4);
-console.log("Thrust = " + thrust);
-var drag = cd * 0.5 * waterDensity * crossSectionalArea * Math.pow(velocity, 2);
-console.log("Drag = " + drag);
-
+submarineParameters.weight = submarineParameters.totalMass * submarineParameters.gravity;
+submarineParameters.buoyancy = submarineParameters.waterDensity * submarineParameters.gravity * submarineParameters.volume;
+var thrust = submarineParameters.kt * submarineParameters.waterDensity * Math.pow(rotorRoundPerSecond, 2) * Math.pow(submarineParameters.rotorDiameter, 4);
+var drag = submarineParameters.cDrag * 0.5 * submarineParameters.waterDensity * calculateCrossSectionalArea(submarineParameters.width / 2) * Math.pow(velocity, 2);
 var forces = thrust - drag;
-console.log("Forces = " + forces);
-var acceleration = forces / mass;
-console.log("Acceleration = " + acceleration);
+var acceleration = forces / submarineParameters.totalMass;
 
 const timeToReachMaxRotation = 40;
 
 var increatMotorRotation = () => {
-    if (rotorRoundPerSecond < 10) {
-        rotorRoundPerSecond += 10 / (timeToReachMaxRotation * (1000 / interval))
+    if (rotorRoundPerSecond < submarineParameters.rotorRoundPerSecond) {
+        rotorRoundPerSecond += submarineParameters.rotorRoundPerSecond / (timeToReachMaxRotation * (1000 / interval))
         rotorRoundPerSecond = round(rotorRoundPerSecond)
         submarineParameters.rpm = rotorRoundPerSecond * 60;
     }
 }
 
 const updateAcceleration = () => {
-    thrust = kt * waterDensity * Math.pow(rotorRoundPerSecond, 2) * Math.pow(fanDiameter, 4);
+    thrust = submarineParameters.kt * submarineParameters.waterDensity * Math.pow(rotorRoundPerSecond, 2) * Math.pow(submarineParameters.rotorDiameter, 4);
     thrust = round(thrust);
-    drag = cd * 0.5 * waterDensity * crossSectionalArea * Math.pow(velocity, 2);
+    drag = submarineParameters.cDrag * 0.5 * submarineParameters.waterDensity * calculateCrossSectionalArea(submarineParameters.width / 2) * Math.pow(velocity, 2);
     drag = round(drag);
     forces = thrust - drag;
     forces = round(forces);
-    acceleration = forces / mass;
+    acceleration = forces / submarineParameters.totalMass;
     acceleration = round(acceleration);
-    console.log("Update Thrust = " + thrust);
-    console.log("Update Drag = " + drag);
-    console.log("Update Forces = " + forces);
-    console.log("Update Acceleration = " + acceleration);
+
+    submarineParameters.thrust = thrust
+    submarineParameters.drag = drag
+    submarineParameters.acceleration = acceleration
 }
 
 
@@ -405,21 +514,13 @@ var velocity0 = 0;
 const interval = 10;
 var time = 0;
 var currentTick = 0;
-var ticks = 10000;
-// var ticks = 1 / 0;
+var ticks = Infinity;
 var x = 0, x0 = 0;
 var speed = 0;
 const updateVelocity = () => {
     if (currentTick <= ticks) {
-        console.log("\n")
-        console.log("======= TICK : " + currentTick + " ========")
 
         increatMotorRotation();
-        console.info("# Motor RPS : " + rotorRoundPerSecond)
-
-        speed = velocity * 3.6;
-        speed = round(speed);
-        console.info("# Speed : " + speed + " KM")
 
         time = interval / 1000;
         time = round(time)
@@ -427,24 +528,19 @@ const updateVelocity = () => {
         velocity = acceleration * time + velocity0
         velocity = round(velocity);
         submarineParameters.speed = submarineParameters.currentSpeed();
-        console.log("Current Velocity = " + velocity);
-
         velocity0 = velocity
 
         x = 0.5 * acceleration * Math.pow(time, 2) + velocity * time + x0;
         x = round(x);
         submarineParameters.positionX = x;
-        console.log("X = " + x);
-
         x0 = x;
 
         if (submarine != null) {
             submarine.position.z = x
 
             // controls.lookAt(submarine.position)
-            //controls.position = submarine.position
-            //camera.lookAt(submarine.position)
-
+            // controls.position = submarine.position
+            // camera.lookAt(submarine.position)
             // camera.position.set(-2, 1, submarine.position.z - 3)
             // controls.update()
 
@@ -455,24 +551,40 @@ const updateVelocity = () => {
 
         updateAcceleration();
 
-        console.log("\n")
+        // console.log("\n")
+        // console.log("======= TICK : " + currentTick + " ========")
+        // console.info("# Motor RPS : " + rotorRoundPerSecond)
+        // speed = velocity * 3.6;
+        // speed = round(speed);
+        // console.info("# Speed : " + speed + " KM")
+        // console.log("Update Thrust = " + thrust);
+        // console.log("Update Drag = " + drag);
+        // console.log("Update Forces = " + forces);
+        // console.log("Update Acceleration = " + acceleration);
+        // console.log("Current Velocity = " + velocity);
+        // console.log("X = " + x);
+        // console.log("\n")
     }
 }
-
-window.setInterval(updateVelocity, interval);
 
 /**
  * Update
  */
-let previousTime = 0
-
+// const clock = new THREE.Clock()
+// let previousTime = 0
 const tick = () => {
-    const elapsedTime = clock.getElapsedTime()
-    const deltaTime = elapsedTime - previousTime
-    previousTime = elapsedTime
+    // const elapsedTime = clock.getElapsedTime()
+    // const deltaTime = elapsedTime - previousTime
+    // previousTime = elapsedTime
+
+    // Update elapsed time if the simulation is running
+    if (simulate) {
+        elapsedTime = Date.now() - startTime;
+        simulationControls.time = (elapsedTime / 1000).toFixed(2); // Display time in seconds
+    }
 
     // Update controls
-    controls.update(deltaTime)
+    controls.update()
 
     // Render
     renderer.render(scene, camera)
@@ -482,46 +594,3 @@ const tick = () => {
 }
 
 tick()
-
-
-/*
-import gsap from 'gsap'
-
-// Axes Helper
-const axesHelper = new THREE.AxesHelper();
-scene.add(axesHelper)
-
-window.addEventListener('resize', () => {
-    // Update Sizes
-    sizes.width = window.innerWidth
-    sizes.height = window.innerHeight
-
-    // Update Camera
-    camera.aspect = sizes.width / sizes.height
-    camera.updateProjectionMatrix()
-
-    // Update Renderer
-    renderer.setSize(sizes.width, sizes.height)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-})
-
-window.addEventListener('dblclick', () => {
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-
-    if (!fullscreenElement) {
-        if (canvas.requestFullscreen) {
-            canvas.requestFullscreen()
-        }
-        else if (canvas.webkitRequestFullscreen) {
-            canvas.webkitRequestFullscreen()
-        }
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen()
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen()
-        }
-    }
-})
-
-*/
