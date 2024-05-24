@@ -19,6 +19,8 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
+const objectsScaleFactor = 0.1
+
 /**
  * Axes Helper
  */
@@ -57,7 +59,7 @@ const floorMaterial = new THREE.MeshBasicMaterial()
 floorMaterial.map = dirtTexture
 floorMaterial.color = new THREE.Color('#07066F')
 const floor = new THREE.Mesh(floorGeometry, floorMaterial)
-floor.position.y = -10
+floor.position.y = -150 * objectsScaleFactor
 floor.receiveShadow = true
 floor.rotation.x = - Math.PI * 0.5
 scene.add(floor)
@@ -72,7 +74,7 @@ const surface = new THREE.Mesh(
         side: THREE.DoubleSide
     })
 )
-surface.position.y = 10
+surface.position.y = 150 * objectsScaleFactor
 surface.rotation.x = - Math.PI * 0.5
 scene.add(surface)
 
@@ -133,8 +135,12 @@ let submarine = null
 const submarineModelPath = 'models/OhioSubmarine/glb/ohio-submarine.glb'
 gtflLoader.load(submarineModelPath, function (gltf) {
     submarine = gltf.scene
-    submarine.scale.set(0.05, 0.05, 0.05)
     submarine.rotation.y = Math.PI
+    const boundingBox = new THREE.Box3().setFromObject(submarine);
+    const initialLength = boundingBox.max.z - boundingBox.min.z;
+    let desiredLength = ohioSubmarineParamters.length * objectsScaleFactor;
+    const scaleFactor = desiredLength / initialLength;
+    submarine.scale.set(scaleFactor, scaleFactor, scaleFactor);
     scene.add(submarine);
 
 }, undefined, function (error) {
@@ -169,8 +175,8 @@ window.addEventListener('resize', () => {
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(-3, 2, -3)
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000 * objectsScaleFactor)
+camera.position.set(-30 * objectsScaleFactor, 20 * objectsScaleFactor, -30 * objectsScaleFactor)
 scene.add(camera)
 
 // Controls
@@ -179,20 +185,20 @@ const controls = new OrbitControls(camera, canvas)
 // controls.autoRotateSpeed = 20
 controls.enablePan = false
 controls.enableDamping = true;
-controls.maxDistance = 10
+controls.maxDistance = 150 * objectsScaleFactor
 controls.listenToKeyEvents(window);
 
 /**
  * Objects
  */
-const geometry = new THREE.ConeGeometry(1, 3, 4, 1);
+const geometry = new THREE.ConeGeometry(10 * objectsScaleFactor, 30 * objectsScaleFactor, 4, 1);
 const material = new THREE.MeshBasicMaterial({ color: 0x111177 });
 material.map = stonesTexture
 for (let i = 0; i < 5000; i++) {
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.x = (Math.random() - 0.5) * 2000;
-    mesh.position.y = (Math.random() - 0.5) * 10;
-    mesh.position.z = (Math.random() - 0.5) * 2000;
+    mesh.position.x = (Math.random() - 0.5) * 20000 * objectsScaleFactor;
+    mesh.position.y = (Math.random() - 0.5) * 150 * objectsScaleFactor;
+    mesh.position.z = (Math.random() - 0.5) * 20000 * objectsScaleFactor;
     scene.add(mesh);
 }
 
@@ -270,7 +276,7 @@ const ohioSubmarineParamters = {
 
 }
 
-const typhonSubmarineParamters = {
+const typhoonSubmarineParamters = {
     emptyMass: 23200000,
     totalMass: 48000000,
     maxDepth: 400,
@@ -311,8 +317,8 @@ const switchSubmarineParameters = (submarineType) => {
 
     if (submarineType === 'Ohio') {
         newParams = ohioSubmarineParamters;
-    } else if (submarineType === 'Typhon') {
-        newParams = typhonSubmarineParamters;
+    } else if (submarineType === 'Typhoon') {
+        newParams = typhoonSubmarineParamters;
     }
 
     // Manually update each parameter
@@ -323,6 +329,33 @@ const switchSubmarineParameters = (submarineType) => {
             }
         });
     }
+
+    // Reset submarine model
+    if (submarine != null) {
+        scene.remove(submarine);
+    }
+
+    const submarineModelPath = submarineType === 'Ohio'
+        ? 'models/OhioSubmarine/glb/ohio-submarine.glb'
+        : 'models/TyphoonSubmarine/glb/typhoon-submarine.glb';
+
+    gtflLoader.load(submarineModelPath, function (gltf) {
+        submarine = gltf.scene;
+        const boundingBox = new THREE.Box3().setFromObject(submarine);
+        const initialLength = boundingBox.max.z - boundingBox.min.z;
+        let desiredLength;
+        if (submarineType === 'Ohio') {
+            desiredLength = ohioSubmarineParamters.length;
+            submarine.rotation.y = Math.PI
+        } else if (submarineType === 'Typhoon') {
+            desiredLength = typhoonSubmarineParamters.length;
+        }
+        const scaleFactor = (desiredLength * objectsScaleFactor) / initialLength;
+        submarine.scale.set(scaleFactor, scaleFactor, scaleFactor);
+        scene.add(submarine);
+    }, undefined, function (error) {
+        console.error(error);
+    });
     preset = submarineParametersFolder.save();
     simulationControls.resetSimulation()
 };
@@ -334,7 +367,7 @@ const submarineOptions = {
 
 let submarineParameters = { ...ohioSubmarineParamters }
 const submarineParametersFolder = gui.addFolder("Submarine Parameters")
-submarineParametersFolder.add(submarineOptions, 'type', ['Ohio', 'Typhon']).name("Select Submarine").onChange((type) => { switchSubmarineParameters(type) });
+submarineParametersFolder.add(submarineOptions, 'type', ['Ohio', 'Typhoon']).name("Select Submarine").onChange((type) => { switchSubmarineParameters(type) });
 submarineParametersFolder
     .add(submarineParameters, 'emptyMass')
     .name("Empty Mass (Kg)")
