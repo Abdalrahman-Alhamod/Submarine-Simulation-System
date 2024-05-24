@@ -464,6 +464,8 @@ const simulationControls = {
         rotorRoundPerSecond = 0;
 
         // Reset submarine parameters
+        submarineParameters.weight = submarineParameters.totalMass * submarineParameters.gravity;
+        submarineParameters.buoyancy = submarineParameters.waterDensity * submarineParameters.gravity * submarineParameters.volume;
         submarineParameters.speed = 0;
         submarineParameters.positionX = 0;
         submarineParameters.positionY = 0;
@@ -501,7 +503,7 @@ SimulationFolder.add(submarineParameters, 'thrust').name("Thrust (N)").listen().
 SimulationFolder.add(submarineParameters, 'drag').name("Drag (N)").listen().disable()
 SimulationFolder.add(submarineParameters, 'acceleration').name("Acceleration (m/s²)").listen().disable()
 SimulationFolder.add(submarineParameters, 'rpm').name("Rotor RPM").listen().disable()
-SimulationFolder.add(submarineParameters, 'currentSpeed', { Knots: knots, km: kiloMeterPerHour, ms: meterPerSecond }).name("Speed Unit")
+SimulationFolder.add(submarineParameters, 'currentSpeed', { "knots": knots, "km/h": kiloMeterPerHour, "m/s": meterPerSecond }).name("Speed Unit")
 SimulationFolder.add(submarineParameters, 'speed').name("Speed").listen().disable()
 SimulationFolder.add(submarineParameters, 'positionX').name("Position X").listen().disable()
 SimulationFolder.add(submarineParameters, 'positionY').name("Position Y").listen().disable()
