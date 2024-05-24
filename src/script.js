@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import gsap from 'gsap'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import GUI from 'lil-gui'
 
 /**
@@ -10,21 +10,6 @@ const gui = new GUI({ width: 300 })
 // gui.close()
 
 // gui.hide()
-
-const parameters = {
-    color: 0xff0000,
-    spin: () => {
-        gsap.to(mesh.rotation, { duration: 1, y: mesh.rotation.y + Math.PI * 2 })
-    }
-}
-
-gui
-    .addColor(parameters, 'color')
-    .onChange(() => {
-        material.color.set(parameters.color)
-    })
-
-gui.add(parameters, 'spin')
 
 /**
  * Base
@@ -36,26 +21,113 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 /**
- * Object
+ * Axes Helper
  */
-const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2)
-const material = new THREE.MeshBasicMaterial({ color: parameters.color, wireframe: true })
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
+const axesHelper = new THREE.AxesHelper(10000);
+axesHelper
+scene.add(axesHelper)
+
 
 /**
- * Debug
+ * Floor
  */
-gui
-    .add(mesh.position, 'y')
-    .min(-3)
-    .max(3)
-    .step(0.01)
-    .name('elevation')
+const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(10000, 10000),
+    new THREE.MeshBasicMaterial({
+        color: '#070619',
+    })
+)
+floor.position.y = -10
+floor.receiveShadow = true
+floor.rotation.x = - Math.PI * 0.5
+scene.add(floor)
 
-gui.add(mesh, 'visible')
+/**
+ * Surface
+ */
+const surface = new THREE.Mesh(
+    new THREE.PlaneGeometry(10000, 10000),
+    new THREE.MeshBasicMaterial({
+        color: '#07066F',
+        side: THREE.DoubleSide
+    })
+)
 
-gui.add(material, 'wireframe')
+surface.position.y = 10
+surface.receiveShadow = true
+surface.rotation.x = - Math.PI * 0.5
+scene.add(surface)
+
+/**
+ * Ocean effect
+ */
+scene.background = new THREE.Color(0x07062e);
+
+scene.fog = new THREE.Fog(0x07062e, 1, 100);
+
+/**
+ * Lights
+ */
+const color = new THREE.Color(0xeeeeee)
+// Ambient Light: Lower intensity to avoid overexposure
+const ambientLight = new THREE.AmbientLight(color, 0.6);
+scene.add(ambientLight);
+
+const createDirectionalLight = (color, intensity, position) => {
+    const light = new THREE.DirectionalLight(color, intensity);
+    light.castShadow = true;
+    light.shadow.mapSize.set(1024, 1024);
+    light.shadow.camera.far = 5000;
+    light.shadow.camera.left = -10;
+    light.shadow.camera.top = 10;
+    light.shadow.camera.right = 10;
+    light.shadow.camera.bottom = -10;
+    light.position.set(...position);
+    return light;
+};
+
+// Create and add lights
+const directionalLight = createDirectionalLight(color, 10, [10, 5, 10]);
+scene.add(directionalLight);
+
+const directionalLight2 = createDirectionalLight(color, 10, [-10, 5, 10]);
+scene.add(directionalLight2);
+
+// const directionalLight3 = createDirectionalLight(color, 10, [10, 5, -10]);
+// scene.add(directionalLight3);
+
+
+const pointLight = new THREE.PointLight(color, 10.5);
+pointLight.position.set(2, 3, 2);
+scene.add(pointLight);
+
+const spotLight = new THREE.SpotLight(color, 10.7);
+spotLight.position.set(15, 40, 35);
+spotLight.angle = Math.PI / 6;
+spotLight.penumbra = 0.1;
+spotLight.decay = 2;
+spotLight.distance = 200;
+spotLight.castShadow = true;
+spotLight.shadow.mapSize.set(2048, 2048);
+scene.add(spotLight);
+
+
+/**
+ * Model
+ */
+const gtflLoader = new GLTFLoader();
+let submarine = null
+gtflLoader.load('models/OhioSubmarine/scene.gltf', function (gltf) {
+    submarine = gltf.scene
+    submarine.scale.set(0.05, 0.05, 0.05)
+    submarine.rotation.y = Math.PI
+    scene.add(submarine);
+
+}, undefined, function (error) {
+
+    console.error(error);
+
+});
 
 /**
  * Sizes
@@ -79,19 +151,57 @@ window.addEventListener('resize', () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
+window.addEventListener('dblclick', () => {
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+
+    if (!fullscreenElement) {
+        if (canvas.requestFullscreen) {
+            canvas.requestFullscreen()
+        }
+        else if (canvas.webkitRequestFullscreen) {
+            canvas.webkitRequestFullscreen()
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen()
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen()
+        }
+    }
+})
+
 /**
  * Camera
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 1
-camera.position.y = 1
-camera.position.z = 2
+camera.position.set(-3, 2, -3)
 scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
-controls.enableDamping = true
+// controls.autoRotate = true
+// controls.autoRotateSpeed = 20
+controls.enablePan = false
+controls.enableDamping = true;
+controls.maxDistance = 10
+controls.listenToKeyEvents(window);
+
+/**
+ * Objects
+ */
+const geometry = new THREE.ConeGeometry(1, 3, 4, 1);
+const material = new THREE.MeshBasicMaterial({ color: 0x111177 });
+
+for (let i = 0; i < 5000; i++) {
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.x = (Math.random() - 0.5) * 1000;
+    mesh.position.y = 0;
+    mesh.position.z = (Math.random() - 0.5) * 1000;
+    scene.add(mesh);
+}
+
 
 /**
  * Renderer
@@ -99,6 +209,8 @@ controls.enableDamping = true
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas
 })
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
@@ -107,6 +219,9 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  */
 const clock = new THREE.Clock()
 
+/**
+ * Simulation
+ */
 const round = (num) => {
     var roundDigits = 1E4;
     var num = Math.round(num * roundDigits);
@@ -223,6 +338,8 @@ const loadButton = submarineParametersFolder.add(submarineParameters, 'loadPrese
 loadButton.disable()
 submarineParametersFolder.close()
 
+submarineParametersFolder.destroy()
+
 gui.add(submarineParameters, 'rpm').name("Rotor RPM").listen().disable()
 gui.add(submarineParameters, 'currentSpeed', { Knots: knots, km: kiloMeterPerHour, ms: meterPerSecond }).name("Speed Unit")
 gui.add(submarineParameters, 'speed').name("Speed").listen().disable()
@@ -285,7 +402,7 @@ const updateAcceleration = () => {
 
 
 var velocity0 = 0;
-const interval = 100;
+const interval = 10;
 var time = 0;
 var currentTick = 0;
 var ticks = 10000;
@@ -321,6 +438,19 @@ const updateVelocity = () => {
 
         x0 = x;
 
+        if (submarine != null) {
+            submarine.position.z = x
+
+            // controls.lookAt(submarine.position)
+            //controls.position = submarine.position
+            //camera.lookAt(submarine.position)
+
+            // camera.position.set(-2, 1, submarine.position.z - 3)
+            // controls.update()
+
+            controls.target = submarine.position
+        }
+
         currentTick++;
 
         updateAcceleration();
@@ -331,11 +461,18 @@ const updateVelocity = () => {
 
 window.setInterval(updateVelocity, interval);
 
+/**
+ * Update
+ */
+let previousTime = 0
+
 const tick = () => {
     const elapsedTime = clock.getElapsedTime()
+    const deltaTime = elapsedTime - previousTime
+    previousTime = elapsedTime
 
     // Update controls
-    controls.update()
+    controls.update(deltaTime)
 
     // Render
     renderer.render(scene, camera)
