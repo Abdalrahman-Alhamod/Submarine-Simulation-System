@@ -6,6 +6,8 @@
 Download [Node.js](https://nodejs.org/en/download/).
 Run this followed commands:
 
+## Additional Libraries
+
 
 ### Install dependencies (only the first time)
 ``` bash
@@ -31,3 +33,15 @@ npm run build
 npm run deploy
 ```
 
+## Additional Commands
+
+### Generate Documentation: Use JSDoc to generate documentation for your JavaScript files:
+> The output will show in the "out" folder in project root
+``` bash
+npm run docs
+```
+### Compile TypeScript Files: Convert TypeScript files to JavaScript using the TypeScript compiler (tsc):
+
+``` bash
+npm run compile
+```
