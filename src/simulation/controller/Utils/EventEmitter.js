@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * EventEmitter class to manage event-driven architecture.
  * @class
@@ -146,4 +144,4 @@ class EventEmitter {
         return newName;
     }
 }
-exports.default = EventEmitter;
+export default EventEmitter;

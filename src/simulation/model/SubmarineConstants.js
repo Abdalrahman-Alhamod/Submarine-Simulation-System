@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Represents the constant parameters of the submarine.
  * @class
@@ -348,4 +346,4 @@ class SubmarineConstants {
         this.ballastTankCapacity = ballastTankCapacity;
     }
 }
-exports.default = SubmarineConstants;
+export default SubmarineConstants;

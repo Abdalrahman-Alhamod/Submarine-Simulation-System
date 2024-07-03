@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Represents the environment for submarine simulation.
  * @class
@@ -52,4 +50,4 @@ class Environment {
         this.waterDensity = waterDensity;
     }
 }
-exports.default = Environment;
+export default Environment;

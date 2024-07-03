@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Represents the variable state of the submarine during simulation.
  * @class
@@ -315,4 +313,4 @@ class SubmarineState {
         this.fairwaterAngle = fairwaterAngle;
     }
 }
-exports.default = SubmarineState;
+export default SubmarineState;

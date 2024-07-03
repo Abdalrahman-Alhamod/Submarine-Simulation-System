@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Represents the submarine by combining constant parameters and variable state.
  * @class
@@ -43,4 +41,4 @@ class Submarine {
         this.state = state;
     }
 }
-exports.default = Submarine;
+export default Submarine;
