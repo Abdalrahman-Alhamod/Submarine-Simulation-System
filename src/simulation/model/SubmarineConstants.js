@@ -20,13 +20,11 @@ class SubmarineConstants {
      * @param {number} sternCoefficient - The stern coefficient of the submarine.
      * @param {number} rudderCoefficient - The rudder coefficient of the submarine.
      * @param {number} fairwaterCoefficient - The fairwater coefficient of the submarine.
-     * @param {THREE.Vector3} centerOfMass - The center of mass of the submarine.
      * @param {THREE.Vector3} centerOfBuoyancy - The center of buoyancy of the submarine.
-     * @param {number} momentOfInertia - The moment of inertia of the submarine.
      * @param {number} surfaceArea - The surface area of the submarine.
      * @param {number} ballastTankCapacity - The ballast tank capacity of the submarine.
      */
-    constructor(emptyMass, maxMass, length, width, volume, rotorDiameter, maxRotorRPS, sternPlaneArea, rudderPlaneArea, fairwaterPlaneArea, dragCoefficient, thrustCoefficient, sternCoefficient, rudderCoefficient, fairwaterCoefficient, centerOfMass, centerOfBuoyancy, momentOfInertia, surfaceArea, ballastTankCapacity) {
+    constructor(emptyMass, maxMass, length, width, volume, rotorDiameter, maxRotorRPS, sternPlaneArea, rudderPlaneArea, fairwaterPlaneArea, dragCoefficient, thrustCoefficient, sternCoefficient, rudderCoefficient, fairwaterCoefficient, centerOfBuoyancy, surfaceArea, ballastTankCapacity) {
         this.emptyMass = emptyMass;
         this.maxMass = maxMass;
         this.length = length;
@@ -43,9 +41,7 @@ class SubmarineConstants {
         this.sternCoefficient = sternCoefficient;
         this.rudderCoefficient = rudderCoefficient;
         this.fairwaterCoefficient = fairwaterCoefficient;
-        this.centerOfMass = centerOfMass;
         this.centerOfBuoyancy = centerOfBuoyancy;
-        this.momentOfInertia = momentOfInertia;
         this.surfaceArea = surfaceArea;
         this.ballastTankCapacity = ballastTankCapacity;
     }
@@ -276,20 +272,6 @@ class SubmarineConstants {
         this.fairwaterCoefficient = fairwaterCoefficient;
     }
     /**
-     * Gets the center of mass of the submarine.
-     * @returns {THREE.Vector3} The center of mass.
-     */
-    getCenterOfMass() {
-        return this.centerOfMass;
-    }
-    /**
-     * Sets the center of mass of the submarine.
-     * @param {THREE.Vector3} centerOfMass - The new center of mass.
-     */
-    setCenterOfMass(centerOfMass) {
-        this.centerOfMass = centerOfMass;
-    }
-    /**
      * Gets the center of buoyancy of the submarine.
      * @returns {THREE.Vector3} The center of buoyancy.
      */
@@ -302,20 +284,6 @@ class SubmarineConstants {
      */
     setCenterOfBuoyancy(centerOfBuoyancy) {
         this.centerOfBuoyancy = centerOfBuoyancy;
-    }
-    /**
-     * Gets the moment of inertia of the submarine.
-     * @returns {number} The moment of inertia.
-     */
-    getMomentOfInertia() {
-        return this.momentOfInertia;
-    }
-    /**
-     * Sets the moment of inertia of the submarine.
-     * @param {number} momentOfInertia - The new moment of inertia.
-     */
-    setMomentOfInertia(momentOfInertia) {
-        this.momentOfInertia = momentOfInertia;
     }
     /**
      * Gets the surface area of the submarine.

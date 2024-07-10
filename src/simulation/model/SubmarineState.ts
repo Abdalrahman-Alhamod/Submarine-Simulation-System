@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import SubmarineConstants from './SubmarineConstants';
 
 /**
  * Represents the variable state of the submarine during simulation.
@@ -46,37 +47,37 @@ class SubmarineState {
      * The current speed of the submarine in meters per second (m/s) as a Vector3.
      * @private
      */
-    private currentSpeed: THREE.Vector3;
+    public currentSpeed: THREE.Vector3;
 
     /**
      * The current acceleration of the submarine in meters per second squared (m/s²) as a Vector3.
      * @private
      */
-    private currentAcceleration: THREE.Vector3;
+    public currentAcceleration: THREE.Vector3;
 
     /**
      * The current position of the submarine in 3D space as a Vector3.
      * @private
      */
-    private currentPosition: THREE.Vector3;
+    public currentPosition: THREE.Vector3;
 
     /**
      * The current orientation of the submarine (pitch, yaw, roll) in radians as a Vector3.
      * @private
      */
-    private currentOrientation: THREE.Vector3;
+    public currentOrientation: THREE.Quaternion;
 
     /**
      * The current angular velocity of the submarine in radians per second (rad/s) as a Vector3.
      * @private
      */
-    private angularVelocity: THREE.Vector3;
+    public angularVelocity: THREE.Vector3;
 
     /**
      * The current angular acceleration of the submarine in radians per second squared (rad/s²) as a Vector3.
      * @private
      */
-    private angularAcceleration: THREE.Vector3;
+    public angularAcceleration: THREE.Vector3;
 
     /**
      * The weight of the submarine in newtons (N).
@@ -121,6 +122,24 @@ class SubmarineState {
     private fairwaterAngle: number;
 
     /**
+     * The moment of inertia of the submarine.
+     * @private
+     */
+    private momentOfInertia: THREE.Matrix3;
+
+    /**
+     * The center of mass of the submarine.
+     * @private
+     */
+    private centerOfMass: THREE.Vector3;
+
+    /**
+     * The submarine's constants used for calculations.
+     * @private
+     */
+    private submarineConstants: SubmarineConstants;
+
+    /**
      * Creates an instance of SubmarineState.
      * @param {number} currentTotalWaterMass - The initial current total water mass inside the submarine.
      * @param {number} currentWaterMassFrontTank - The initial current water mass in the front tank.
@@ -131,7 +150,7 @@ class SubmarineState {
      * @param {THREE.Vector3} currentSpeed - The initial current speed of the submarine.
      * @param {THREE.Vector3} currentAcceleration - The initial current acceleration of the submarine.
      * @param {THREE.Vector3} currentPosition - The initial current position of the submarine.
-     * @param {THREE.Vector3} currentOrientation - The initial current orientation of the submarine.
+     * @param {THREE.Quaternion} currentOrientation - The initial current orientation of the submarine.
      * @param {THREE.Vector3} angularVelocity - The initial angular velocity of the submarine.
      * @param {THREE.Vector3} angularAcceleration - The initial angular acceleration of the submarine.
      * @param {number} weight - The initial weight of the submarine.
@@ -141,6 +160,9 @@ class SubmarineState {
      * @param {number} sternAngle - The initial angle of the stern plane.
      * @param {number} rudderAngle - The initial angle of the rudder plane.
      * @param {number} fairwaterAngle - The initial angle of the fairwater plane.
+     * @param {THREE.Matrix3} momentOfInertia - The moment of inertia of the submarine.
+     * @param {THREE.Vector3} centerOfMass - The center of mass of the submarine.
+     * @param {SubmarineConstants} submarineConstants - The submarine constants for calculations.
      */
     constructor(
         currentTotalWaterMass: number,
@@ -152,7 +174,7 @@ class SubmarineState {
         currentSpeed: THREE.Vector3,
         currentAcceleration: THREE.Vector3,
         currentPosition: THREE.Vector3,
-        currentOrientation: THREE.Vector3,
+        currentOrientation: THREE.Quaternion,
         angularVelocity: THREE.Vector3,
         angularAcceleration: THREE.Vector3,
         weight: number,
@@ -161,7 +183,10 @@ class SubmarineState {
         thrust: number,
         sternAngle: number,
         rudderAngle: number,
-        fairwaterAngle: number
+        fairwaterAngle: number,
+        momentOfInertia: THREE.Matrix3,
+        centerOfMass: THREE.Vector3,
+        submarineConstants: SubmarineConstants
     ) {
         this.currentTotalWaterMass = currentTotalWaterMass;
         this.currentWaterMassFrontTank = currentWaterMassFrontTank;
@@ -182,6 +207,9 @@ class SubmarineState {
         this.sternAngle = sternAngle;
         this.rudderAngle = rudderAngle;
         this.fairwaterAngle = fairwaterAngle;
+        this.momentOfInertia = momentOfInertia;
+        this.centerOfMass = centerOfMass;
+        this.submarineConstants = submarineConstants
     }
 
     /**
@@ -197,7 +225,42 @@ class SubmarineState {
      * @param {number} currentTotalWaterMass - The new current total water mass inside the submarine.
      */
     setCurrentTotalWaterMass(currentTotalWaterMass: number): void {
+        const maxTankCapacity = this.submarineConstants.getBallastTankCapacity() / 2;
+        const oldTotalWater = this.currentWaterMassFrontTank + this.currentWaterMassBackTank;
+        const totalAddedWater = currentTotalWaterMass - oldTotalWater;
+
+        // Distribute water change evenly
+        let newFrontTankWater = this.currentWaterMassFrontTank + totalAddedWater / 2;
+        let newBackTankWater = this.currentWaterMassBackTank + totalAddedWater / 2;
+
+        // Handle overflow and underflow for the front tank
+        if (newFrontTankWater > maxTankCapacity) {
+            const overflow = newFrontTankWater - maxTankCapacity;
+            newFrontTankWater = maxTankCapacity;
+            newBackTankWater += overflow;
+        } else if (newFrontTankWater < 0) {
+            const underflow = newFrontTankWater;
+            newFrontTankWater = 0;
+            newBackTankWater += underflow;
+        }
+
+        // Handle overflow and underflow for the back tank
+        if (newBackTankWater > maxTankCapacity) {
+            const overflow = newBackTankWater - maxTankCapacity;
+            newBackTankWater = maxTankCapacity;
+            newFrontTankWater += overflow;
+        } else if (newBackTankWater < 0) {
+            const underflow = newBackTankWater;
+            newBackTankWater = 0;
+            newFrontTankWater += underflow;
+        }
+
+        // Ensure tanks do not go below zero or above max capacity
+        this.currentWaterMassFrontTank = Math.min(Math.max(newFrontTankWater, 0), maxTankCapacity);
+        this.currentWaterMassBackTank = Math.min(Math.max(newBackTankWater, 0), maxTankCapacity);
+
         this.currentTotalWaterMass = currentTotalWaterMass;
+        this.autoSetCenterOfMass();
     }
 
     /**
@@ -213,7 +276,9 @@ class SubmarineState {
      * @param {number} currentWaterMassFrontTank - The new current water mass in the front ballast tank.
      */
     setCurrentWaterMassFrontTank(currentWaterMassFrontTank: number): void {
+        this.currentTotalWaterMass = currentWaterMassFrontTank + this.getCurrentWaterMassBackTank()
         this.currentWaterMassFrontTank = currentWaterMassFrontTank;
+        this.autoSetCenterOfMass();
     }
 
     /**
@@ -229,7 +294,33 @@ class SubmarineState {
      * @param {number} currentWaterMassBackTank - The new current water mass in the back ballast tank.
      */
     setCurrentWaterMassBackTank(currentWaterMassBackTank: number): void {
+        this.currentTotalWaterMass = currentWaterMassBackTank + this.getCurrentWaterMassFrontTank()
         this.currentWaterMassBackTank = currentWaterMassBackTank;
+        this.autoSetCenterOfMass();
+    }
+
+    /**
+     * Automatically sets the center of mass of the submarine based on the water mass in ballast tanks.
+     * The center of mass is adjusted relative to the submarine's length and the difference in water mass
+     * between the front and back ballast tanks.
+     * This method calculates the center of mass based on the difference in water mass between the front
+     * and back ballast tanks. It adjusts the submarine's center of mass along the longitudinal axis (z-axis)
+     * to maintain stability and balance.
+     * @returns {void}
+     * @private
+     */
+    private autoSetCenterOfMass(): void {
+        const waterInFront = this.currentWaterMassFrontTank;
+        const waterInBack = this.currentWaterMassBackTank;
+        const max = this.submarineConstants.getBallastTankCapacity() / 2;
+        const diff = waterInFront - waterInBack;
+        const ratio = diff / max;
+        const position = ratio * (this.submarineConstants.getLength() / 4);
+        if (waterInFront >= waterInBack) {
+            this.setCenterOfMass(this.centerOfMass.set(0, 0, position));
+        } else {
+            this.setCenterOfMass(this.centerOfMass.set(0, 0, position));
+        }
     }
 
     /**
@@ -330,17 +421,17 @@ class SubmarineState {
 
     /**
      * Gets the current orientation of the submarine.
-     * @returns {THREE.Vector3} The current orientation of the submarine (pitch, yaw, roll) in radians as a Vector3.
+     * @returns {THREE.Quaternion} The current orientation of the submarine.
      */
-    getCurrentOrientation(): THREE.Vector3 {
+    getCurrentOrientation(): THREE.Quaternion {
         return this.currentOrientation.clone();
     }
 
     /**
      * Sets the current orientation of the submarine.
-     * @param {THREE.Vector3} currentOrientation - The new current orientation of the submarine (pitch, yaw, roll) in radians as a Vector3.
+     * @param {THREE.Quaternion} currentOrientation - The new current orientation of the submarine.
      */
-    setCurrentOrientation(currentOrientation: THREE.Vector3): void {
+    setCurrentOrientation(currentOrientation: THREE.Quaternion): void {
         this.currentOrientation.copy(currentOrientation);
     }
 
@@ -487,6 +578,110 @@ class SubmarineState {
     setFairwaterAngle(fairwaterAngle: number): void {
         this.fairwaterAngle = fairwaterAngle;
     }
+
+    /**
+    * Gets the moment of inertia of the submarine.
+    * @returns {THREE.Matrix3} The moment of inertia.
+    */
+    getMomentOfInertia(): THREE.Matrix3 {
+        return this.momentOfInertia;
+    }
+
+    /**
+     * Sets the moment of inertia of the submarine.
+     * @param {THREE.Matrix3} momentOfInertia - The new moment of inertia.
+     */
+    setMomentOfInertia(momentOfInertia: THREE.Matrix3): void {
+        this.momentOfInertia = momentOfInertia;
+    }
+
+    /**
+     * Gets the center of mass of the submarine.
+     * @returns {THREE.Vector3} The center of mass.
+     */
+    getCenterOfMass(): THREE.Vector3 {
+        return this.centerOfMass;
+    }
+
+    /**
+     * Sets the center of mass of the submarine.
+     * @param {THREE.Vector3} centerOfMass - The new center of mass.
+     */
+    setCenterOfMass(centerOfMass: THREE.Vector3): void {
+        this.centerOfMass = centerOfMass;
+    }
+
+    /**
+     * Gets the forward axis of the submarine in its current orientation.
+     * 
+     * This method defines a unit vector in the direction of the submarine's forward axis (typically along the +z-axis),
+     * then rotates this vector according to the submarine's current orientation.
+     * @returns {THREE.Vector3} The forward axis of the submarine as a Vector3.
+     */
+    getForwardAxis(): THREE.Vector3 {
+
+        // Define a unit vector in the direction of the submarine's forward axis
+        const forwardDirection = new THREE.Vector3(0, 0, 1); // Assuming initial forward is along +z-axis
+
+        // Rotate the forward direction vector by the submarine's orientation
+        forwardDirection.applyQuaternion(this.getCurrentOrientation());
+
+        return forwardDirection;
+    }
+
+    /**
+     * Gets the up axis of the submarine in its current orientation.
+     * 
+     * This method defines a unit vector in the direction of the submarine's up axis (typically along the +y-axis),
+     * then rotates this vector according to the submarine's current orientation.
+     * @returns {THREE.Vector3} The up axis of the submarine as a Vector3.
+     */
+    getUpAxis(): THREE.Vector3 {
+
+        // Define a unit vector in the direction of the submarine's forward axis
+        const upDirection = new THREE.Vector3(0, 1, 0); // Assuming initial forward is along +z-axis
+
+        // Rotate the forward direction vector by the submarine's orientation
+        upDirection.applyQuaternion(this.getCurrentOrientation());
+
+        return upDirection;
+    }
+
+    /**
+     * Gets the right axis of the submarine based on its current orientation.
+     *
+     * This method calculates the right axis (perpendicular to both the forward and up axes)
+     * by computing the cross product of the up and forward axes after rotation.
+     * @returns {THREE.Vector3} The right axis of the submarine as a Vector3.
+     */
+    getRightAxis(): THREE.Vector3 {
+        const upAxis = this.getUpAxis();
+        const forwardAxis = this.getForwardAxis();
+        const rightAxis = upAxis.cross(forwardAxis);
+        return rightAxis;
+    }
+
+    /**
+     * Calculates the current mass of the submarine.
+     * 
+     * This method computes the total mass of the submarine, which includes the current total water mass
+     * and the empty mass of the submarine defined by constants.
+     * @returns {number} The current mass of the submarine in newtons (N).
+     */
+    public getCurrentMass(): number {
+        return this.currentTotalWaterMass + this.submarineConstants.getEmptyMass();
+    }
+
+    /**
+     * Calculates the difference in water mass between the front and back ballast tanks.
+     * 
+     * This method computes the absolute difference in water mass between the front and back ballast tanks.
+     * @returns {number} The difference in water mass between the front and back ballast tanks in cubic meters (m³).
+     */
+    public getTanksDifferenceMass(): number {
+        return Math.max(this.currentWaterMassFrontTank, this.currentWaterMassBackTank) - Math.min(this.currentWaterMassFrontTank, this.currentWaterMassBackTank);
+    }
 }
+
 
 export default SubmarineState;

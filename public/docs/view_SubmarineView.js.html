@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: view/SubmarineView.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: view/SubmarineView.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as THREE from 'three';
+import { SubmarineType } from '../model/SubmarineType';
+import { ResourceNames } from '../model/Utils/Resources/ResourcesNames';
+import { Events } from '../controller/Utils/Events';
+import SubmarineDebug from './SubmarineDebug';
+/**
+ * Class representing the view of a submarine in the scene.
+ * Manages the loading, initialization, and updating of submarine models.
+ *
+ * @class
+ */
+class SubmarineView {
+    /**
+     * Constructor for the SubmarineView class.
+     * Initializes submarines scene models.
+     * Sets up the initial submarine and debug tools.
+     *
+     * @param {Simulator} simulator - The simulator instance.
+     */
+    constructor(simulator) {
+        this.simulator = simulator;
+        this.resources = this.simulator.resources;
+        this.scene = this.simulator.scene;
+        this.submarines = this.simulator.submarines;
+        this.items = {};
+        this.submarineData = this.simulator.submarines.getCurrentSubmarine();
+        this.initSubmarines();
+        const submarineType = this.submarineData.getType();
+        this.submarineScene = this.items[submarineType];
+        this.scene.add(this.submarineScene);
+        new SubmarineDebug(this.simulator);
+        this.simulator.submarines.on(Events.SwitchSubmarine, () => {
+            this.setSubmarineDataAndScene();
+        });
+        this.submarineData.on(Events.SubmarineUpdate, () => {
+            this.updateSubmarine();
+            this.simulator.camera.updateTarget(this.submarineScene.position);
+        });
+    }
+    /**
+     * Sets the current submarine data and updates the scene with the corresponding submarine model.
+     */
+    setSubmarineDataAndScene() {
+        this.submarineData = this.simulator.submarines.getCurrentSubmarine();
+        this.scene.remove(this.submarineScene);
+        const submarineType = this.submarineData.getType();
+        this.submarineScene = this.items[submarineType];
+        this.scene.add(this.submarineScene);
+    }
+    /**
+     * Initializes the submarine meshes for different submarine types and stores them in the items map.
+     */
+    initSubmarines() {
+        const ohioSubmarine = this.initOhioSubmarineMesh();
+        this.items[SubmarineType.Ohio] = ohioSubmarine;
+        const typhoonSubmarine = this.initTyhpponSubmarineMesh();
+        this.items[SubmarineType.Typhoon] = typhoonSubmarine;
+    }
+    /**
+     * Initializes the Ohio submarine mesh by loading it from resources, applying necessary transformations,
+     * and baking its rotation into the geometry.
+     *
+     * @returns {THREE.Scene} - The transformed Ohio submarine scene.
+     */
+    initOhioSubmarineMesh() {
+        const ohioSubmarineScene = this.getSceneFromResource(ResourceNames.OhioSubmarineModel, SubmarineType.Ohio);
+        ohioSubmarineScene.rotation.y = Math.PI;
+        this.bakeRotationIntoGeometry(ohioSubmarineScene);
+        ohioSubmarineScene.rotation.y = 0;
+        return ohioSubmarineScene;
+    }
+    /**
+    * Initializes the Typhoon submarine mesh by loading it from resources.
+    *
+    * @returns {THREE.Scene} - The Typhoon submarine scene.
+    */
+    initTyhpponSubmarineMesh() {
+        const typhoonSubmarineScene = this.getSceneFromResource(ResourceNames.TyphoonSubmarineModel, SubmarineType.Typhoon);
+        return typhoonSubmarineScene;
+    }
+    /**
+     * Retrieves the submarine scene from the given resource and scales it according to the desired length.
+     *
+     * @param {ResourceNames} resourceName - The name of the resource to load.
+     * @param {SubmarineType} submarineType - The type of the submarine.
+     * @returns {THREE.Scene} - The scaled submarine scene.
+     */
+    getSceneFromResource(resourceName, submarineType) {
+        const submarineGTFL = this.resources.getResource(resourceName);
+        const submarineScene = submarineGTFL.scene;
+        const boundingBox = new THREE.Box3().setFromObject(submarineScene);
+        const initialLength = boundingBox.max.z - boundingBox.min.z;
+        const desiredLength = this.submarines.getSubmarine(submarineType).getConstants().getLength();
+        const scaleFactor = desiredLength / initialLength;
+        submarineScene.scale.set(scaleFactor, scaleFactor, scaleFactor);
+        return submarineScene;
+    }
+    /**
+    * Updates the submarine's position and orientation in the scene based on its current state.
+    */
+    updateSubmarine() {
+        this.submarineScene.position.copy(this.submarineData.getState().getCurrentPosition());
+        this.submarineScene.quaternion.copy(this.submarineData.getState().getCurrentOrientation());
+    }
+    /**
+    * Function to bake rotation into geometry.
+    * Ensures the object's world matrix is up-to-date and applies the world matrix to the geometry.
+    *
+    * @param {THREE.Object3D} object - The object whose rotation to bake into its geometry.
+    */
+    bakeRotationIntoGeometry(object) {
+        object.updateMatrixWorld(true); // Ensure the world matrix is up-to-date
+        object.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+                const geometry = child.geometry;
+                geometry.applyMatrix4(object.matrixWorld); // Apply world matrix to geometry
+                geometry.computeVertexNormals(); // Recompute vertex normals
+                child.position.set(0, 0, 0); // Reset position
+                child.rotation.set(0, 0, 0); // Reset rotation
+                child.scale.set(1, 1, 1); // Reset scale
+                child.updateMatrixWorld(true); // Update matrix
+            }
+        });
+    }
+}
+export default SubmarineView;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Camera.html">Camera</a></li><li><a href="Debug.html">Debug</a></li><li><a href="Environment.html">Environment</a></li><li><a href="EventEmitter.html">EventEmitter</a></li><li><a href="Phyiscs.html">Phyiscs</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="Resources.html">Resources</a></li><li><a href="SceneEnvironment.html">SceneEnvironment</a></li><li><a href="Simulator.html">Simulator</a></li><li><a href="Sizes.html">Sizes</a></li><li><a href="Source.html">Source</a></li><li><a href="Subamrines.html">Subamrines</a></li><li><a href="Submarine.html">Submarine</a></li><li><a href="SubmarineConstants.html">SubmarineConstants</a></li><li><a href="SubmarineDebug.html">SubmarineDebug</a></li><li><a href="SubmarineState.html">SubmarineState</a></li><li><a href="SubmarineView.html">SubmarineView</a></li><li><a href="Time.html">Time</a></li><li><a href="World.html">World</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Events">Events</a></li><li><a href="global.html#ResourceNames">ResourceNames</a></li><li><a href="global.html#ResourceTypes">ResourceTypes</a></li><li><a href="global.html#SubmarineType">SubmarineType</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Jul 10 2024 23:21:39 GMT+0300 (غرينتش+03:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -86,7 +86,7 @@ class Camera {
             75,
             this.sizes.width / this.sizes.height,
             0.1,
-            1000
+            10000
         );
         this.instance.position.set(-30, 20, -30);
         this.scene.add(this.instance);

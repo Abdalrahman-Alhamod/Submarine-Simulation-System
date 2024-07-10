@@ -42,5 +42,18 @@ export var Events;
     * have been successfully loaded and are ready for application use.
     */
     Events["ResourcesReady"] = "resourcesReady";
-    // Add more event names as needed
+    /**
+     * Event emitted when switching between different submarine instances.
+     *
+     * This event is triggered when the application switches from simulating
+     * one submarine to another, allowing for dynamic submarine selection.
+     */
+    Events["SwitchSubmarine"] = "switchSubmarine";
+    /**
+     * Event emitted when the state of the submarine is updated.
+     *
+     * This event is triggered whenever there is a change in the state (e.g.,
+     * position, orientation, velocity) of the submarine during simulation.
+     */
+    Events["SubmarineUpdate"] = "submarineUpdate";
 })(Events || (Events = {}));

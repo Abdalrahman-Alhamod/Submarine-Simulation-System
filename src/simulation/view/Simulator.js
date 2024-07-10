@@ -8,6 +8,9 @@ import World from './World';
 import Sources from '../model/Utils/Resources/Sources';
 import { Events } from '../controller/Utils/Events';
 import Camera from './Camera';
+import Environment from '../model/Environment';
+import Physics from '../controller/Physics';
+import Submarines from '../model/Submarines';
 /**
  * Simulator class for managing the WebGL-based simulation environment.
  *
@@ -48,6 +51,10 @@ class Simulator {
         this.camera = new Camera(this);
         this.renderer = new Renderer(this);
         this.world = new World(this);
+        this.environment = new Environment(9.8, 1025);
+        this.submarines = new Submarines();
+        this.physics = new Physics(this);
+        this.time.on(Events.ClockTick, () => this.physics.simulateStep());
         // Subscribe to resize event
         this.sizes.on(Events.Resize, () => this.resize());
         // Subscribe to frame tick event

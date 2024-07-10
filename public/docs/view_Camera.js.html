@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: view/Camera.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: view/Camera.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+/**
+ * Camera class for managing the perspective camera and its controls.
+ * Uses Three.js for 3D rendering and interaction.
+ *
+ * @class
+ */
+class Camera {
+    /**
+     * Creates an instance of Camera.
+     * Initializes the camera and controls.
+     *
+     * @param {Simulator} simulator - The simulator instance containing scene, canvas, and sizes.
+     * @constructor
+     */
+    constructor(simulator) {
+        this.simulator = simulator;
+        this.scene = this.simulator.scene;
+        this.canvas = this.simulator.canvas;
+        this.sizes = this.simulator.sizes;
+        this.setInstance();
+        this.setControls();
+    }
+    /**
+     * Initializes the perspective camera instance.
+     * Sets up the camera position and adds it to the scene.
+     *
+     * @private
+     */
+    setInstance() {
+        this.instance = new THREE.PerspectiveCamera(75, this.sizes.width / this.sizes.height, 0.1, 10000);
+        this.instance.position.set(-30, 20, -30);
+        this.scene.add(this.instance);
+    }
+    /**
+     * Initializes the OrbitControls for camera interaction.
+     * Configures the controls and attaches them to the camera.
+     *
+     * @private
+     */
+    setControls() {
+        this.controls = new OrbitControls(this.instance, this.canvas);
+        this.controls.enablePan = false;
+        this.controls.enableDamping = true;
+        this.controls.maxDistance = 150;
+        this.controls.listenToKeyEvents(window);
+    }
+    /**
+     * Resize the camera aspect ratio when the simulator size changes.
+     *
+     * @public
+     */
+    resize() {
+        this.instance.aspect = this.sizes.width / this.sizes.height;
+        this.instance.updateProjectionMatrix();
+    }
+    /**
+     * Update the camera controls.
+     *
+     * @public
+     */
+    update() {
+        this.controls.update();
+    }
+    /**
+     * Update the target for the camera controls.
+     *
+     * @param {THREE.Vector3} target - The new target position for the camera.
+     * @public
+     */
+    updateTarget(target) {
+        this.controls.target = target;
+    }
+    /**
+     * Disposes of the camera controls and cleans up resources.
+     *
+     * This method disposes the OrbitControls instance, ensuring all associated
+     * resources are properly released to avoid memory leaks.
+     *
+     * @public
+     */
+    dispose() {
+        this.controls.dispose();
+    }
+    /**
+     * Returns the instance of the perspective camera.
+     *
+     * This method provides access to the internal THREE.PerspectiveCamera instance,
+     * allowing external classes or functions to interact with the camera directly.
+     *
+     * @returns {THREE.PerspectiveCamera} The perspective camera instance.
+     * @public
+     */
+    getInstance() {
+        return this.instance;
+    }
+}
+export default Camera;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Camera.html">Camera</a></li><li><a href="Debug.html">Debug</a></li><li><a href="Environment.html">Environment</a></li><li><a href="EventEmitter.html">EventEmitter</a></li><li><a href="Phyiscs.html">Phyiscs</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="Resources.html">Resources</a></li><li><a href="SceneEnvironment.html">SceneEnvironment</a></li><li><a href="Simulator.html">Simulator</a></li><li><a href="Sizes.html">Sizes</a></li><li><a href="Source.html">Source</a></li><li><a href="Subamrines.html">Subamrines</a></li><li><a href="Submarine.html">Submarine</a></li><li><a href="SubmarineConstants.html">SubmarineConstants</a></li><li><a href="SubmarineDebug.html">SubmarineDebug</a></li><li><a href="SubmarineState.html">SubmarineState</a></li><li><a href="SubmarineView.html">SubmarineView</a></li><li><a href="Time.html">Time</a></li><li><a href="World.html">World</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Events">Events</a></li><li><a href="global.html#ResourceNames">ResourceNames</a></li><li><a href="global.html#ResourceTypes">ResourceTypes</a></li><li><a href="global.html#SubmarineType">SubmarineType</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Jul 10 2024 23:21:39 GMT+0300 (غرينتش+03:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

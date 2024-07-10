@@ -8,6 +8,9 @@ import World from './World';
 import Sources from '../model/Utils/Resources/Sources';
 import { Events } from '../controller/Utils/Events';
 import Camera from './Camera';
+import Environment from '../model/Environment';
+import Physics from '../controller/Physics';
+import Submarines from '../model/Submarines';
 
 /**
  * Simulator class for managing the WebGL-based simulation environment.
@@ -99,6 +102,30 @@ class Simulator {
     public world!: World;
 
     /**
+     * Physics instance for managing the physical simulation of the environment.
+     * 
+     * @type {Physics}
+     * @public
+     */
+    public physics!: Physics;
+
+    /**
+     * Submarines instance for managing the collection of submarines in the simulation.
+     * 
+     * @type {Submarines}
+     * @public
+     */
+    public submarines!: Submarines;
+
+    /**
+     * Environment instance for managing environmental properties such as gravity and water density.
+     * 
+     * @type {Environment}
+     * @public
+     */
+    public environment!: Environment;
+
+    /**
      * Creates an instance of the Simulator class.
      * Initializes all necessary components and sets up event listeners.
      * 
@@ -124,7 +151,11 @@ class Simulator {
         this.camera = new Camera(this);
         this.renderer = new Renderer(this);
         this.world = new World(this);
+        this.environment = new Environment(9.8, 1025);
+        this.submarines = new Submarines();
+        this.physics = new Physics(this)
 
+        this.time.on(Events.ClockTick, () => this.physics.simulateStep());
         // Subscribe to resize event
         this.sizes.on(Events.Resize, () => this.resize());
 

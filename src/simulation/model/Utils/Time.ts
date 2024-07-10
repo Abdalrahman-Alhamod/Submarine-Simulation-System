@@ -22,7 +22,7 @@ class Time extends EventEmitter {
      * @type {number}
      * @private
      */
-    private start: number;
+    private startTime: number;
 
     /**
      * Time difference between the current frame and the previous frame in milliseconds.
@@ -38,7 +38,7 @@ class Time extends EventEmitter {
      * @type {number}
      * @private
      */
-    private elapsed: number;
+    public elapsed: number;
 
     /**
      * Interval ID for the periodic time update interval.
@@ -47,6 +47,8 @@ class Time extends EventEmitter {
      * @private
      */
     private tickIntervalId?: number;
+
+    isRunning: boolean;
 
     /**
      * Creates an instance of Time.
@@ -59,18 +61,18 @@ class Time extends EventEmitter {
         super();
 
         this.current = Date.now();
-        this.start = this.current;
+        this.startTime = this.current;
         this.delta = 0;
         this.elapsed = 0;
         this.tickIntervalId = undefined;
+        this.isRunning = false
 
         // Start the animation frame loop
         window.requestAnimationFrame(() => {
             this.tick();
         });
 
-        // Start the interval for periodic calculations
-        this.startInterval();
+
     }
 
     /**
@@ -79,10 +81,6 @@ class Time extends EventEmitter {
      * @private
      */
     private tick(): void {
-        const currentTime = Date.now();
-        this.delta = currentTime - this.current;
-        this.current = currentTime;
-        this.elapsed = this.current - this.start;
 
         // Trigger 'frameTick' event
         this.trigger(Events.FrameTick);
@@ -103,7 +101,10 @@ class Time extends EventEmitter {
         this.tickIntervalId = window.setInterval(() => {
             // Trigger 'clockTick' event at every interval
             this.trigger(Events.ClockTick);
-
+            const currentTime = Date.now();
+            this.delta = currentTime - this.current;
+            this.current = currentTime;
+            this.elapsed = this.current - this.startTime;
             // Perform calculations or simulation updates here
             // Example: updateSimulation();
         }, interval);
@@ -127,8 +128,15 @@ class Time extends EventEmitter {
      * @public
      */
     public pause(): void {
-        window.cancelAnimationFrame(this.current);
+        this.isRunning = false
+        this.elapsed = Date.now() - this.startTime;
         this.stopInterval();
+    }
+
+    public start(): void {
+        this.isRunning = true
+        this.startTime = Date.now();
+        this.startInterval();
     }
 
     /**
@@ -137,10 +145,9 @@ class Time extends EventEmitter {
      * @public
      */
     public resume(): void {
+        this.isRunning = true
         this.current = Date.now();
-        window.requestAnimationFrame(() => {
-            this.tick();
-        });
+        this.startTime = Date.now() - this.elapsed;
         this.startInterval();
     }
 
@@ -151,7 +158,7 @@ class Time extends EventEmitter {
      */
     public reset(): void {
         this.current = Date.now();
-        this.start = this.current;
+        this.startTime = this.current;
         this.delta = 0;
         this.elapsed = 0;
         this.pause(); // Stop all intervals and animation frames
@@ -172,7 +179,7 @@ class Time extends EventEmitter {
      * @public
      */
     public getStartTime(): number {
-        return this.start;
+        return this.startTime;
     }
 
     /**

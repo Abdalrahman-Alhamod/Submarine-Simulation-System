@@ -17,16 +17,15 @@ class Time extends EventEmitter {
     constructor() {
         super();
         this.current = Date.now();
-        this.start = this.current;
+        this.startTime = this.current;
         this.delta = 0;
         this.elapsed = 0;
         this.tickIntervalId = undefined;
+        this.isRunning = false;
         // Start the animation frame loop
         window.requestAnimationFrame(() => {
             this.tick();
         });
-        // Start the interval for periodic calculations
-        this.startInterval();
     }
     /**
      * Animation frame loop for rendering and updating time-related variables.
@@ -34,10 +33,6 @@ class Time extends EventEmitter {
      * @private
      */
     tick() {
-        const currentTime = Date.now();
-        this.delta = currentTime - this.current;
-        this.current = currentTime;
-        this.elapsed = this.current - this.start;
         // Trigger 'frameTick' event
         this.trigger(Events.FrameTick);
         // Continue animation frame loop
@@ -55,6 +50,10 @@ class Time extends EventEmitter {
         this.tickIntervalId = window.setInterval(() => {
             // Trigger 'clockTick' event at every interval
             this.trigger(Events.ClockTick);
+            const currentTime = Date.now();
+            this.delta = currentTime - this.current;
+            this.current = currentTime;
+            this.elapsed = this.current - this.startTime;
             // Perform calculations or simulation updates here
             // Example: updateSimulation();
         }, interval);
@@ -76,8 +75,14 @@ class Time extends EventEmitter {
      * @public
      */
     pause() {
-        window.cancelAnimationFrame(this.current);
+        this.isRunning = false;
+        this.elapsed = Date.now() - this.startTime;
         this.stopInterval();
+    }
+    start() {
+        this.isRunning = true;
+        this.startTime = Date.now();
+        this.startInterval();
     }
     /**
      * Resume the time-related operations.
@@ -85,10 +90,9 @@ class Time extends EventEmitter {
      * @public
      */
     resume() {
+        this.isRunning = true;
         this.current = Date.now();
-        window.requestAnimationFrame(() => {
-            this.tick();
-        });
+        this.startTime = Date.now() - this.elapsed;
         this.startInterval();
     }
     /**
@@ -98,7 +102,7 @@ class Time extends EventEmitter {
      */
     reset() {
         this.current = Date.now();
-        this.start = this.current;
+        this.startTime = this.current;
         this.delta = 0;
         this.elapsed = 0;
         this.pause(); // Stop all intervals and animation frames
@@ -117,7 +121,7 @@ class Time extends EventEmitter {
      * @public
      */
     getStartTime() {
-        return this.start;
+        return this.startTime;
     }
     /**
      * Get the time difference between the current frame and the previous frame in milliseconds.

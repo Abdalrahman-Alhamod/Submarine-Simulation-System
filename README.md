@@ -35,12 +35,14 @@ npm run deploy
 
 ## Additional Commands
 
-### Generate Documentation: Use JSDoc to generate documentation for your JavaScript files:
-> The output will show in the "out" folder in project root
+### *Generate Documentation:* 
+- Use JSDoc to generate documentation for your JavaScript files:
+> The output will show in the "docs" folder in public
 ``` bash
 npm run docs
 ```
-### Compile TypeScript Files: Convert TypeScript files to JavaScript using the TypeScript compiler (tsc):
+### *Compile TypeScript Files:* 
+- Convert TypeScript files to JavaScript using the TypeScript compiler (tsc):
 
 ``` bash
 npm run compile

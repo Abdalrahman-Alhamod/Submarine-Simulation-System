@@ -29,7 +29,7 @@ class Camera {
      * @private
      */
     setInstance() {
-        this.instance = new THREE.PerspectiveCamera(75, this.sizes.width / this.sizes.height, 0.1, 1000);
+        this.instance = new THREE.PerspectiveCamera(75, this.sizes.width / this.sizes.height, 0.1, 10000);
         this.instance.position.set(-30, 20, -30);
         this.scene.add(this.instance);
     }

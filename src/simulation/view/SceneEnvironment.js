@@ -21,8 +21,8 @@ class SceneEnvironment {
         this.waterColor = '#07066F';
         this.setupAxesHelper();
         this.setupTextures();
-        this.createFloor();
-        this.createSurface();
+        this.createSeaBottom();
+        this.createSeaSurface();
         this.setupOceanEffect();
         this.setupLights();
         this.addRandomObjects();
@@ -60,46 +60,6 @@ class SceneEnvironment {
         this.dirtTexture.wrapS = THREE.MirroredRepeatWrapping;
         this.dirtTexture.wrapT = THREE.MirroredRepeatWrapping;
         this.stonesTexture = this.resources.getResource(ResourceNames.StonesColorTexture);
-    }
-    /**
-     * Creates the floor mesh and adds it to the scene.
-     *
-     * @private
-     */
-    createFloor() {
-        const floorGeometry = new THREE.PlaneGeometry(10000, 10000);
-        const floorMaterial = new THREE.MeshBasicMaterial({
-            map: this.dirtTexture,
-            color: new THREE.Color(this.waterColor)
-        });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.position.y = -150;
-        floor.receiveShadow = true;
-        floor.rotation.x = -Math.PI * 0.5;
-        this.scene.add(floor);
-    }
-    /**
-     * Creates the surface mesh and adds it to the scene.
-     *
-     * @private
-     */
-    createSurface() {
-        const surface = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), new THREE.MeshBasicMaterial({
-            color: this.waterColor,
-            side: THREE.DoubleSide
-        }));
-        surface.position.y = 150;
-        surface.rotation.x = -Math.PI * 0.5;
-        this.scene.add(surface);
-    }
-    /**
-     * Sets up the ocean effect by adjusting the scene background and fog.
-     *
-     * @private
-     */
-    setupOceanEffect() {
-        this.scene.background = new THREE.Color(this.waterColor);
-        this.scene.fog = new THREE.Fog(this.waterColor, 1, 10000);
     }
     /**
      * Sets up the lights in the scene.
@@ -141,17 +101,62 @@ class SceneEnvironment {
         this.scene.add(spotLight);
     }
     /**
-     * Adds random cone objects to the scene for visual variety.
+     * Creates the sea bottom plane with the appropriate texture and position.
+     *
+     * @private
+     */
+    createSeaBottom() {
+        const seaBottomGeometry = new THREE.PlaneGeometry(20000, 20000);
+        const seaBottomMaterial = new THREE.MeshBasicMaterial({
+            map: this.dirtTexture,
+            color: new THREE.Color(this.waterColor),
+            side: THREE.DoubleSide
+        });
+        const seaBottom = new THREE.Mesh(seaBottomGeometry, seaBottomMaterial);
+        seaBottom.position.y = -1500; // Sea bottom below sea level
+        seaBottom.receiveShadow = true;
+        seaBottom.rotation.x = -Math.PI * 0.5;
+        this.scene.add(seaBottom);
+    }
+    /**
+     * Creates the sea surface plane with the appropriate texture and position.
+     *
+     * @private
+     */
+    createSeaSurface() {
+        const seaSurfaceGeometry = new THREE.PlaneGeometry(20000, 20000);
+        const seaSurfaceMaterial = new THREE.MeshBasicMaterial({
+            map: this.dirtTexture,
+            color: new THREE.Color(this.waterColor),
+            side: THREE.DoubleSide
+        });
+        const seaSurface = new THREE.Mesh(seaSurfaceGeometry, seaSurfaceMaterial);
+        seaSurface.position.y = 0; // Sea level at origin
+        seaSurface.rotation.x = -Math.PI * 0.5;
+        this.scene.add(seaSurface);
+    }
+    /**
+     * Sets up the ocean effect including background color and fog.
+     *
+     * @private
+     */
+    setupOceanEffect() {
+        this.scene.background = new THREE.Color(this.waterColor);
+        this.scene.fog = new THREE.Fog(this.waterColor, 1, 2000);
+    }
+    /**
+     * Adds random objects to the scene for visual complexity.
+     * Uses cone geometry and stone texture.
      *
      * @private
      */
     addRandomObjects() {
         const geometry = new THREE.ConeGeometry(10, 30, 4, 1);
-        const material = new THREE.MeshBasicMaterial({ color: this.waterColor, map: this.stonesTexture });
+        const material = new THREE.MeshBasicMaterial({ color: '#AAAA00', map: this.stonesTexture });
         for (let i = 0; i < 5000; i++) {
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.x = (Math.random() - 0.5) * 20000;
-            mesh.position.y = (Math.random() - 0.5) * 150;
+            mesh.position.y = Math.random() * -500; // Only place objects below sea level
             mesh.position.z = (Math.random() - 0.5) * 20000;
             this.scene.add(mesh);
         }

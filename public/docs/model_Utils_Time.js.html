@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: model/Utils/Time.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: model/Utils/Time.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import EventEmitter from "../../controller/Utils/EventEmitter";
+import { Events } from "../../controller/Utils/Events";
+/**
+ * Time class that manages time-related operations and triggers events on each tick.
+ * Extends EventEmitter to handle event-driven architecture.
+ *
+ * @class
+ */
+class Time extends EventEmitter {
+    /**
+     * Creates an instance of Time.
+     * Initializes the current time and start time to the current timestamp.
+     * Starts the animation frame loop and the periodic interval for time updates.
+     *
+     * @constructor
+     */
+    constructor() {
+        super();
+        this.current = Date.now();
+        this.startTime = this.current;
+        this.delta = 0;
+        this.elapsed = 0;
+        this.tickIntervalId = undefined;
+        this.isRunning = false;
+        // Start the animation frame loop
+        window.requestAnimationFrame(() => {
+            this.tick();
+        });
+    }
+    /**
+     * Animation frame loop for rendering and updating time-related variables.
+     * Triggers 'frameTick' event on each animation frame.
+     * @private
+     */
+    tick() {
+        // Trigger 'frameTick' event
+        this.trigger(Events.FrameTick);
+        // Continue animation frame loop
+        window.requestAnimationFrame(() => {
+            this.tick();
+        });
+    }
+    /**
+     * Start interval for periodic calculations.
+     * Adjust the interval as needed for your specific simulation requirements.
+     * @private
+     */
+    startInterval() {
+        const interval = 10; // Adjust interval time (in milliseconds) as needed
+        this.tickIntervalId = window.setInterval(() => {
+            // Trigger 'clockTick' event at every interval
+            this.trigger(Events.ClockTick);
+            const currentTime = Date.now();
+            this.delta = currentTime - this.current;
+            this.current = currentTime;
+            this.elapsed = this.current - this.startTime;
+            // Perform calculations or simulation updates here
+            // Example: updateSimulation();
+        }, interval);
+    }
+    /**
+     * Stop interval for periodic calculations.
+     * Call this method when pausing or resetting the simulation.
+     * @private
+     */
+    stopInterval() {
+        if (this.tickIntervalId) {
+            window.clearInterval(this.tickIntervalId);
+            this.tickIntervalId = undefined;
+        }
+    }
+    /**
+     * Pause the time-related operations.
+     * Call this method when pausing the simulation or stopping time updates.
+     * @public
+     */
+    pause() {
+        this.isRunning = false;
+        this.elapsed = Date.now() - this.startTime;
+        this.stopInterval();
+    }
+    start() {
+        this.isRunning = true;
+        this.startTime = Date.now();
+        this.startInterval();
+    }
+    /**
+     * Resume the time-related operations.
+     * Call this method to resume time updates after pausing.
+     * @public
+     */
+    resume() {
+        this.isRunning = true;
+        this.current = Date.now();
+        this.startTime = Date.now() - this.elapsed;
+        this.startInterval();
+    }
+    /**
+     * Reset the time-related variables and intervals.
+     * Call this method to reset time and stop ongoing calculations.
+     * @public
+     */
+    reset() {
+        this.current = Date.now();
+        this.startTime = this.current;
+        this.delta = 0;
+        this.elapsed = 0;
+        this.pause(); // Stop all intervals and animation frames
+    }
+    /**
+     * Get the current timestamp in milliseconds.
+     * @returns {number} The current timestamp.
+     * @public
+     */
+    getCurrentTime() {
+        return this.current;
+    }
+    /**
+     * Get the start timestamp when the Time instance was created.
+     * @returns {number} The start timestamp.
+     * @public
+     */
+    getStartTime() {
+        return this.startTime;
+    }
+    /**
+     * Get the time difference between the current frame and the previous frame in milliseconds.
+     * @returns {number} The delta time.
+     * @public
+     */
+    getDeltaTime() {
+        return this.delta;
+    }
+    /**
+     * Get the total elapsed time since the Time instance was created.
+     * @returns {number} The elapsed time.
+     * @public
+     */
+    getElapsedTime() {
+        return this.elapsed;
+    }
+}
+export default Time;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Camera.html">Camera</a></li><li><a href="Debug.html">Debug</a></li><li><a href="Environment.html">Environment</a></li><li><a href="EventEmitter.html">EventEmitter</a></li><li><a href="Phyiscs.html">Phyiscs</a></li><li><a href="Renderer.html">Renderer</a></li><li><a href="Resources.html">Resources</a></li><li><a href="SceneEnvironment.html">SceneEnvironment</a></li><li><a href="Simulator.html">Simulator</a></li><li><a href="Sizes.html">Sizes</a></li><li><a href="Source.html">Source</a></li><li><a href="Subamrines.html">Subamrines</a></li><li><a href="Submarine.html">Submarine</a></li><li><a href="SubmarineConstants.html">SubmarineConstants</a></li><li><a href="SubmarineDebug.html">SubmarineDebug</a></li><li><a href="SubmarineState.html">SubmarineState</a></li><li><a href="SubmarineView.html">SubmarineView</a></li><li><a href="Time.html">Time</a></li><li><a href="World.html">World</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Events">Events</a></li><li><a href="global.html#ResourceNames">ResourceNames</a></li><li><a href="global.html#ResourceTypes">ResourceTypes</a></li><li><a href="global.html#SubmarineType">SubmarineType</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Wed Jul 10 2024 23:21:39 GMT+0300 (غرينتش+03:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
