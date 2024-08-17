@@ -106,9 +106,11 @@ class Phyiscs {
         const omega = state.getAngularVelocity();
         const newOmega = omega.clone().add(alpha.multiplyScalar(this.dt));
         // Update orientation
-        const quaternion = state.getCurrentOrientation();
-        const omegaQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(newOmega.x, newOmega.y, newOmega.z).normalize(), newOmega.length() * this.dt / 2);
-        quaternion.multiply(omegaQuaternion);
+        const angleOfRotation = newOmega.length() * this.dt;
+        const rotationAxis = newOmega.clone().normalize();
+        const quaternionChange = new THREE.Quaternion().setFromAxisAngle(rotationAxis, angleOfRotation);
+        let quaternion = state.getCurrentOrientation();
+        quaternion = quaternion.multiply(quaternionChange);
         quaternion.normalize();
         state.setAngularAcceleration(alpha);
         state.setAngularVelocity(newOmega);
