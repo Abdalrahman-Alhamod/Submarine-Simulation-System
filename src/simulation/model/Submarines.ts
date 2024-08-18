@@ -47,7 +47,7 @@ class Subamrines extends EventEmitter {
         const typhoonSUbmarine = this.initTyphoon();
         this.items[SubmarineType.Typhoon] = typhoonSUbmarine;
 
-        this.current = this.items[SubmarineType.Ohio]
+        this.current = this.items[SubmarineType.Typhoon]
     }
 
     /**

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { ResourceNames } from "../model/Utils/Resources/ResourcesNames";
+import * as EnvView from "./environment/EnvView.js"
 /**
  * Environment class to manage and set up the 3D environment in the simulation.
  * Handles setting up textures, lights, floor, surface, and other elements.
@@ -18,14 +19,15 @@ class SceneEnvironment {
         this.scene = this.simulator.scene;
         this.debugPanel = this.simulator.debug.gui;
         this.resources = this.simulator.resources;
-        this.waterColor = '#07066F';
+        this.waterColor = '#999999';
         this.setupAxesHelper();
-        this.setupTextures();
-        this.createSeaBottom();
-        this.createSeaSurface();
-        this.setupOceanEffect();
+        // this.setupTextures();
+        // this.createSeaBottom();
+        // this.createSeaSurface();
+        // this.setupOceanEffect();
         this.setupLights();
-        this.addRandomObjects();
+        // this.addRandomObjects();
+        EnvView.init(simulator);
     }
     /**
      * Sets up the axes helper for debugging purposes.
@@ -41,13 +43,13 @@ class SceneEnvironment {
             .add(this, 'showAxesHelper')
             .name('Show Axes')
             .onChange((isShowed) => {
-            if (isShowed) {
-                this.scene.add(axesHelper);
-            }
-            else {
-                this.scene.remove(axesHelper);
-            }
-        });
+                if (isShowed) {
+                    this.scene.add(axesHelper);
+                }
+                else {
+                    this.scene.remove(axesHelper);
+                }
+            });
     }
     /**
      * Loads and sets up textures for the environment.

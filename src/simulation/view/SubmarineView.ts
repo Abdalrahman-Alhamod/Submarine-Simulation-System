@@ -65,6 +65,7 @@ class SubmarineView {
      * @param {Simulator} simulator - The simulator instance.
      */
     constructor(simulator: Simulator) {
+
         this.simulator = simulator;
         this.resources = this.simulator.resources;
         this.scene = this.simulator.scene;
@@ -124,7 +125,19 @@ class SubmarineView {
         ohioSubmarineScene.rotation.y = 0
         return ohioSubmarineScene;
     }
-
+    setFanRotation(angle:any) {
+        this.items[SubmarineType.Typhoon].children[0].children[3].rotation.y -= angle;
+        this.items[SubmarineType.Typhoon].children[0].children[4].rotation.y += angle;
+    }
+    setRudderRotation(angle:any) {
+        this.items[SubmarineType.Typhoon].children[0].children[5].rotation.z -= angle;
+    }
+    setFiarwaterRotation(angle:any) {
+        this.items[SubmarineType.Typhoon].children[0].children[1].rotation.x -= angle;
+    }
+    setSternRotation(angle:any) {
+        this.items[SubmarineType.Typhoon].children[0].children[2].rotation.x -= angle;
+    }
     /**
     * Initializes the Typhoon submarine mesh by loading it from resources.
     * 

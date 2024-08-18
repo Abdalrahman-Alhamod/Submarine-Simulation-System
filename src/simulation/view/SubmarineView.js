@@ -33,6 +33,10 @@ class SubmarineView {
             this.setSubmarineDataAndScene();
         });
         this.submarineData.on(Events.SubmarineUpdate, () => {
+            this.setFanRotation(THREE.MathUtils.degToRad(this.submarineData.getState().getCurrentRotorRPS() * ((Math.PI * 2))));
+            this.setSternRotation(THREE.MathUtils.degToRad(this.submarineData.getState().getSternAngle()));
+            this.setRudderRotation(THREE.MathUtils.degToRad(this.submarineData.getState().rudderAngle));
+            this.setFiarwaterRotation(THREE.MathUtils.degToRad(this.submarineData.getState().getFairwaterAngle()));
             this.updateSubmarine();
             this.simulator.camera.updateTarget(this.submarineScene.position);
         });
@@ -46,6 +50,19 @@ class SubmarineView {
         const submarineType = this.submarineData.getType();
         this.submarineScene = this.items[submarineType];
         this.scene.add(this.submarineScene);
+    }
+    setFanRotation(angle) {
+        this.items[SubmarineType.Typhoon].children[0].children[3].rotation.y -= angle;
+        this.items[SubmarineType.Typhoon].children[0].children[4].rotation.y += angle;
+    }
+    setRudderRotation(angle) {
+        this.items[SubmarineType.Typhoon].children[0].children[5].rotation.z = - angle;
+    }
+    setFiarwaterRotation(angle) {
+        this.items[SubmarineType.Typhoon].children[0].children[1].rotation.x = angle;
+    }
+    setSternRotation(angle) {
+        this.items[SubmarineType.Typhoon].children[0].children[2].rotation.x = - angle;
     }
     /**
      * Initializes the submarine meshes for different submarine types and stores them in the items map.

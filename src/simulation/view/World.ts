@@ -40,7 +40,7 @@ class World {
      * The SubmarineView instance responsible for managing the visual representation of the submarine.
      * @type {SubmarineView}
      */
-    private submarineView!: SubmarineView;
+     submarineView!: SubmarineView;
 
     /**
      * Constructor for the World class.
@@ -75,6 +75,7 @@ class World {
      */
     update() {
         // Update logic for various components can be added here
+        this.environment.update();
     }
 }
 export default World; 

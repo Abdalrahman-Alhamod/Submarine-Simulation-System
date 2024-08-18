@@ -37,10 +37,10 @@ class SubmarineDebug {
         const submarineOptions = {
             type: this.simulator.submarines.getCurrentSubmarine().getType()
         };
-        this.debugGUI.add(submarineOptions, 'type', [SubmarineType.Ohio, SubmarineType.Typhoon])
+        this.debugGUI.add(submarineOptions, 'type', [SubmarineType.Typhoon, SubmarineType.Ohio,])
             .name("Select Submarine").onChange((type) => {
-            this.simulator.submarines.switchSubmarine(type);
-        });
+                this.simulator.submarines.switchSubmarine(type);
+            });
     }
     /**
      * Initializes the debug GUI with submarine attributes and controls.
@@ -141,7 +141,11 @@ class SubmarineDebug {
             .name("Stern Angle (°)")
             .min(-30)
             .max(30)
-            .step(1);
+            .step(1)
+        // .listen(true)
+        // .onChange((value) => {
+        //     this.simulator.world.submarineView.setRudderRotation(THREE.MathUtils.degToRad(Math.PI));
+        // });
         submarineVariablesFolder
             .add(submarineVariables, 'rudderAngle')
             .name("Rudder Angle (°)")

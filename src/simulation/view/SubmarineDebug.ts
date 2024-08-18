@@ -3,7 +3,7 @@ import Submarine from "../model/Submarine";
 import { SubmarineType } from "../model/SubmarineType";
 import Simulator from "./Simulator";
 import GUI from "lil-gui";
-
+import * as THREE from 'three';
 /**
  * SubmarineDebug class is responsible for setting up and managing the debugging
  * GUI for submarines in the simulator. It allows users to switch between submarines
@@ -176,6 +176,9 @@ class SubmarineDebug {
             .min(-30)
             .max(30)
             .step(1)
+            .onChange((value: any) => {
+                this.simulator.world.submarineView.setSternRotation(THREE.MathUtils.degToRad(Math.PI / 4));
+            });
         submarineVariablesFolder
             .add(submarineVariables, 'rudderAngle')
             .name("Rudder Angle (°)")

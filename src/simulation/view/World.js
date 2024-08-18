@@ -1,6 +1,7 @@
 import { Events } from "../controller/Utils/Events";
 import SceneEnvironment from "./SceneEnvironment";
 import SubmarineView from "./SubmarineView";
+import * as EnvView from "./environment/EnvView.js"
 /**
  * World class is responsible for managing the overall scene, including initialization
  * and updating of different components such as the environment.
@@ -38,6 +39,7 @@ class World {
      */
     update() {
         // Update logic for various components can be added here
+        EnvView.update();
     }
 }
 export default World;

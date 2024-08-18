@@ -56,7 +56,7 @@ class Renderer {
      * @type {THREE.WebGLRenderer}
      * @private
      */
-    private instance!: THREE.WebGLRenderer;
+     instance!: THREE.WebGLRenderer;
 
     /**
      * Creates an instance of Renderer.

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import Resources from "../model/Utils/Resources/Resources";
 import { ResourceNames } from "../model/Utils/Resources/ResourcesNames";
 import GUI from 'lil-gui';
-
+// import * as UI from "./environment/scripts/UI.js";
 /**
  * Environment class to manage and set up the 3D environment in the simulation.
  * Handles setting up textures, lights, floor, surface, and other elements.
@@ -77,14 +77,7 @@ class SceneEnvironment {
 
         this.waterColor = '#07066F';
         this.setupAxesHelper();
-        this.setupTextures();
-
-        this.createSeaBottom();
-        this.createSeaSurface();
-        this.setupOceanEffect();
-        this.setupLights();
-        this.addRandomObjects();
-
+        this.simulator.renderer.instance;
     }
 
     /**
@@ -231,6 +224,9 @@ class SceneEnvironment {
             mesh.position.z = (Math.random() - 0.5) * 20000;
             this.scene.add(mesh);
         }
+    }
+    update() {
+
     }
 }
 
