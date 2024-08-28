@@ -269,3 +269,21 @@ a:visited {
     color: #03c;
     text-decoration: none;
 }
+
+/* Custom styles for lil-gui loading screen */
+.lil-gui.loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2rem;
+    /* Increase font size */
+    background: rgba(30, 30, 30, 0.9);
+    /* Darker background for better visibility */
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 1000;
+    /* Ensure it's on top of other elements */
+    width: 400px;
+    /* Set a fixed width */
+}

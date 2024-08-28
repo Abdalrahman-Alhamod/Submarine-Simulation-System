@@ -59,5 +59,6 @@ export enum Events {
      * This event is triggered whenever there is a change in the state (e.g.,
      * position, orientation, velocity) of the submarine during simulation.
      */
-    SubmarineUpdate = 'submarineUpdate'
+    SubmarineUpdate = 'submarineUpdate',
+    ResourceProgress = 'resourceProgress'
 }

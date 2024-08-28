@@ -10,6 +10,7 @@ import Camera from "./Camera";
 import Environment from "../model/Environment";
 import Physics from "../controller/Physics";
 import Submarines from "../model/Submarines";
+import GUI from 'lil-gui';
 /**
  * Simulator class for managing the WebGL-based simulation environment.
  *
@@ -57,6 +58,32 @@ class Simulator {
     this.sizes.on(Events.Resize, () => this.resize());
     // Subscribe to frame tick event
     this.time.on(Events.FrameTick, () => this.update());
+
+    // Setup the loading screen with lil-gui
+    this.setupLoadingScreen();
+
+    // Listen for resource loading events
+    this.resources.on(Events.ResourceProgress, () => {
+      this.gui.controllers[0].setValue(this.resources.progress * 100);
+    });
+
+    this.resources.on(Events.ResourcesReady, () => {
+      // Remove or hide the loading screen once resources are ready
+      this.gui.destroy();
+    });
+  }
+  setupLoadingScreen() {
+    // Initialize lil-gui
+    this.gui = new GUI({ title: 'Loading...', autoPlace: false });
+
+    document.body.appendChild(this.gui.domElement);
+
+    // Apply custom CSS class for better styling
+    this.gui.domElement.classList.add('loading');
+
+    // Use a number display instead of a slider
+    this.progressController = this.gui.add({ Progress: 0 }, 'Progress', 0, 100).step(1).listen().disable();
+
   }
   /**
    * Handles resize event by updating camera and renderer dimensions.

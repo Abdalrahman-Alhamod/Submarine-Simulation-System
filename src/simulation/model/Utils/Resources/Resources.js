@@ -53,17 +53,21 @@ class Resources extends EventEmitter {
                 case ResourceTypes.GLTFModel:
                     this.loaders.gltfLoader.load(source.path, (file) => {
                         this.sourceLoaded(source, file);
-                    });
+                    }, (xhr) => { }, // onProgress callback
+                        (error) => console.error(`Error loading GLTFModel: ${source.name}`, error));
                     break;
                 case ResourceTypes.Texture:
                     this.loaders.textureLoader.load(source.path, (file) => {
                         this.sourceLoaded(source, file);
-                    });
+                    }, (xhr) => { }, // onProgress callback
+                        (error) => console.error(`Error loading Texture: ${source.name}`, error));
                     break;
                 case ResourceTypes.CubeTexture:
                     this.loaders.cubeTextureLoader.load(source.path, (file) => {
                         this.sourceLoaded(source, file);
-                    });
+                    },
+                        (xhr) => { }, // onProgress callback
+                        (error) => console.error(`Error loading CubeTexture: ${source.name}`, error));
                     break;
                 default:
                     console.warn(`Unknown resource type: ${source.type}`);
@@ -83,9 +87,15 @@ class Resources extends EventEmitter {
     sourceLoaded(source, file) {
         this.items[source.name] = file;
         this.loaded++;
+        this.emitProgress();
         if (this.loaded === this.toLoad) {
             this.trigger(Events.ResourcesReady);
         }
+    }
+
+    emitProgress() {
+        this.progress = this.loaded / this.toLoad;
+        this.trigger(Events.ResourceProgress);
     }
     /**
      * Retrieves a loaded resource by its name.

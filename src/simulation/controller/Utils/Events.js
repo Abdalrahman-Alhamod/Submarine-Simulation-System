@@ -56,4 +56,5 @@ export var Events;
      * position, orientation, velocity) of the submarine during simulation.
      */
     Events["SubmarineUpdate"] = "submarineUpdate";
+    Events["ResourceProgress"] = "resourceProgress";
 })(Events || (Events = {}));
