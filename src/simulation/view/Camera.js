@@ -19,6 +19,7 @@ class Camera {
         this.scene = this.simulator.scene;
         this.canvas = this.simulator.canvas;
         this.sizes = this.simulator.sizes;
+        this.isFreeCamera = false;
         this.setInstance();
         this.setControls();
     }
@@ -55,6 +56,27 @@ class Camera {
         this.instance.aspect = this.sizes.width / this.sizes.height;
         this.instance.updateProjectionMatrix();
     }
+    switchCamera() {
+        
+        if (this.isFreeCamera) {
+            // Convert to orbit
+            this.controls.enabled = true;
+            document.exitPointerLock();
+            this.controls = new OrbitControls(this.instance, this.canvas);
+            this.controls.enablePan = false;
+            this.controls.enableDamping = true;
+            this.controls.maxDistance = 150;
+            this.controls.listenToKeyEvents(window);
+
+        } else {
+            // Convert to free
+            this.controls.target = this.instance.position
+            this.controls.enabled = false;
+            this.simulator.renderer.instance.domElement.requestPointerLock();
+        }
+        this.isFreeCamera = !this.isFreeCamera;
+
+    }
     /**
      * Update the camera controls.
      *
@@ -70,7 +92,9 @@ class Camera {
      * @public
      */
     updateTarget(target) {
-        this.controls.target = target;
+        if (!this.isFreeCamera) {
+            this.controls.target = target;
+        }
     }
     /**
      * Disposes of the camera controls and cleans up resources.

@@ -2,7 +2,7 @@ import { ShaderChunk } from "three";
 
 const global =
 /*glsl*/`
-    const float FOG_DISTANCE = 1000.0;
+    const float FOG_DISTANCE = 10000.0;
 `;
 
 const skybox =
@@ -186,10 +186,10 @@ const ocean =
     const vec2 VELOCITY_2 = vec2(0.0, 0.1);
     const float SPECULAR_SHARPNESS = 100.0;
     const float SPECULAR_SIZE = 1.1;
-    const float MAX_VIEW_DEPTH = 100.0;
-    const float DENSITY = 0.55;
+    const float MAX_VIEW_DEPTH = 1000.0;
+    const float DENSITY = 0.1;
     const float MAX_VIEW_DEPTH_DENSITY = MAX_VIEW_DEPTH * DENSITY;
-    const vec3 ABSORPTION = vec3(1.0) / vec3(10.0, 40.0, 100.0);
+    const vec3 ABSORPTION = vec3(1.0) / vec3(20.0, 80.0, 200.0);
     const float CRITICAL_ANGLE = asin(1.0 / 1.33) / PI_HALF;
 
     uniform float _Time;

@@ -4,27 +4,28 @@ import * as INPUT from "./scripts/Input.js";
 import * as CONTROL from "./scripts/Control.js";
 import * as UI from "./scripts/UI.js";
 import * as DEBUG from "./scripts/Debug.js";
-import * as SETTINGS from "./shaders/Settings.js"
-
+import * as SETTINGS from "./shaders/Settings.js";
+import Camera from '../Camera.js';
 export function init(simulator) {
-    TIME.Start();
-    SETTINGS.Start();
-    SCENE.Start(simulator);
-    INPUT.Start();
-    CONTROL.Start();
-    UI.Start();
-    DEBUG.Start();
+  TIME.Start();
+  SETTINGS.Start();
+  SCENE.Start(simulator);
+  INPUT.Start();
+  CONTROL.Start();
+  UI.Start();
+  DEBUG.Start();
 }
 
-export function update() {
-    DEBUG.Begin();
+export function update(controlCamera) {
+  DEBUG.Begin();
 
-    TIME.Update();
-    SCENE.Update();
-    // INPUT.Update();
-    // CONTROL.Update();
-    // UI.Update();
-    // DEBUG.Update();
+  TIME.Update();
+  SCENE.Update();
+  INPUT.Update();
 
-    DEBUG.End();
+  CONTROL.Update(controlCamera);
+  UI.Update();
+  DEBUG.Update(controlCamera);
+
+  DEBUG.End();
 }

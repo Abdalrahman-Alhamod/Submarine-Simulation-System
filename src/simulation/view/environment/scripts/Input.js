@@ -147,10 +147,10 @@ export function Start()
 
     document.addEventListener("pointerlockchange", function()
     {
-        if (!document.pointerLockElement)
-        {
-            openMenu();
-        }
+        // if (!document.pointerLockElement)
+        // {
+        //     openMenu();
+        // }
         lastPointerLockChange = time;
         keysPressed = new Array();
     });

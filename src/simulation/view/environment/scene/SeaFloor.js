@@ -12,6 +12,8 @@ const worldSize1 = worldSize + 1;
 const scale = 1;
 const halfSize = tilesPerAxis * tileSize * 0.5 * scale;
 
+const verticalOffset = 100; 
+
 const base1 = new Vector2(0.003, 500);
 const base2 = new Vector2(0.008, 0.2);
 const base3 = new Vector2(0.02, 0.1);
@@ -176,7 +178,7 @@ export function Start() {
                     let worldZ = z + tileZ * tileSize;
 
                     vertices[i] = (worldX - halfSize) * scale;
-                    vertices[i + 1] = heights[worldZ * worldSize1 + worldX] * scale;
+                    vertices[i + 1] = heights[worldZ * worldSize1 + worldX] * scale - verticalOffset;
                     vertices[i + 2] = (worldZ - halfSize) * scale;
 
                     let j = ((tileZ * tileSize + z) * worldSize1 + tileX * tileSize + x) * 3;

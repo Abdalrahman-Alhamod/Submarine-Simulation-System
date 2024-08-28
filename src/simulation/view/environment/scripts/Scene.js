@@ -27,19 +27,9 @@ export function SetResolution(value) {
     resMult = value;
     let width = window.innerWidth * value * window.devicePixelRatio;
     let height = window.innerHeight * value * window.devicePixelRatio;
-    if (window.innerWidth < window.innerHeight) {
-        width = window.innerHeight * value * window.devicePixelRatio;
-        height = window.innerWidth * value * window.devicePixelRatio;
-        body.style.transform = "rotate(90deg) translate(0%, -100%)";
-        body.style.width = window.innerHeight + "px";
-        body.style.height = window.innerWidth + "px";
-    }
-    else {
-        body.style.transform = "";
-        body.style.width = window.innerWidth + "px";
-        body.style.height = window.innerHeight + "px";
-    }
-
+    body.style.transform = "";
+    body.style.width = window.innerWidth + "px";
+    body.style.height = window.innerHeight + "px";
     renderer.setSize(width, height, false);
 }
 
@@ -59,22 +49,14 @@ export function SetAntialias(value) {
 export function Start(simulator) {
     renderer = simulator.renderer.instance;
     scene = simulator.scene;
+    camera = simulator.camera.instance
     document.body.appendChild(body);
 
     let width = window.innerWidth * resMult * window.devicePixelRatio;
     let height = window.innerHeight * resMult * window.devicePixelRatio;
-    if (window.innerWidth < window.innerHeight) {
-        width = window.innerHeight * resMult * window.devicePixelRatio;
-        height = window.innerWidth * resMult * window.devicePixelRatio;
-        body.style.transform = "rotate(90deg) translate(0%, -100%)";
-        body.style.width = window.innerHeight + "px";
-        body.style.height = window.innerWidth + "px";
-    }
-    else {
-        body.style.transform = "";
-        body.style.width = window.innerWidth + "px";
-        body.style.height = window.innerHeight + "px";
-    }
+    body.style.transform = "";
+    body.style.width = window.innerWidth + "px";
+    body.style.height = window.innerHeight + "px";
 
     renderer.setSize(width, height, false);
     renderer.antialias = antialias;
@@ -83,10 +65,10 @@ export function Start(simulator) {
 
     camera.fov = fov;
     camera.aspect = width / height;
-    camera.near = 0.3;
-    camera.far = 4000;
+    // camera.near = 0.3;
+    // camera.far = 4000;
     camera.updateProjectionMatrix();
-    camera.position.set(0, 1, 0);
+    // camera.position.set(0, 1, 0);
 
     UpdateCameraRotation();
 
@@ -100,18 +82,10 @@ export function Start(simulator) {
     window.onresize = function () {
         width = window.innerWidth * resMult * window.devicePixelRatio;
         height = window.innerHeight * resMult * window.devicePixelRatio;
-        if (window.innerWidth < window.innerHeight) {
-            width = window.innerHeight * resMult * window.devicePixelRatio;
-            height = window.innerWidth * resMult * window.devicePixelRatio;
-            body.style.transform = "rotate(90deg) translate(0%, -100%)";
-            body.style.width = window.innerHeight + "px";
-            body.style.height = window.innerWidth + "px";
-        }
-        else {
-            body.style.transform = "";
-            body.style.width = window.innerWidth + "px";
-            body.style.height = window.innerHeight + "px";
-        }
+
+        body.style.transform = "";
+        body.style.width = window.innerWidth + "px";
+        body.style.height = window.innerHeight + "px";
 
         renderer.setSize(width, height, false);
         camera.aspect = width / height;
@@ -129,7 +103,7 @@ export function Start(simulator) {
 
     SeaFloor.Start();
     for (let i = 0; i < SeaFloor.tiles.length; i++) {
-        // scene.add(SeaFloor.tiles[i]);
+        scene.add(SeaFloor.tiles[i]);
     }
 
     Blocks.Start();
