@@ -3,6 +3,11 @@ import { SubmarineType } from '../model/SubmarineType';
 import { ResourceNames } from '../model/Utils/Resources/ResourcesNames';
 import { Events } from '../controller/Utils/Events';
 import SubmarineDebug from './SubmarineDebug';
+
+const ROLLOFF_FACTOR_WATER = 0.23; // For underwater sound
+const ROLLOFF_FACTOR_AIR = 1; // For above water sound
+const WATER_LEVEL = 0; // Y position of the water surface
+
 /**
  * Class representing the view of a submarine in the scene.
  * Manages the loading, initialization, and updating of submarine models.
@@ -29,10 +34,12 @@ class SubmarineView {
         this.submarineScene = this.items[submarineType];
         this.scene.add(this.submarineScene);
         new SubmarineDebug(this.simulator);
+        this.setupEngineSound();
         this.simulator.submarines.on(Events.SwitchSubmarine, () => {
             this.setSubmarineDataAndScene();
         });
         this.submarineData.on(Events.SubmarineUpdate, () => {
+            this.setFanSound(this.submarineData.getState().getCurrentRotorRPS());
             this.setFanRotation(THREE.MathUtils.degToRad(this.submarineData.getState().getCurrentRotorRPS() * ((Math.PI * 2))));
             this.setSternRotation(THREE.MathUtils.degToRad(this.submarineData.getState().getSternAngle()));
             this.setRudderRotation(THREE.MathUtils.degToRad(this.submarineData.getState().rudderAngle));
@@ -40,6 +47,126 @@ class SubmarineView {
             this.updateSubmarine();
             this.simulator.camera.updateTarget(this.submarineScene.position);
         });
+    }
+
+    setupEngineSound() {
+        // Step 1: Create an Audio Listener and add it to the camera
+        const listener = new THREE.AudioListener();
+        this.simulator.camera.instance.add(listener); // Assuming `camera.instance` is your camera object
+
+        // Step 2: Create a PositionalAudio object and attach it to the submarine
+        const engineSound = new THREE.PositionalAudio(listener);
+        const buffer = this.resources.getResource(ResourceNames.EngineSound);
+        engineSound.setBuffer(buffer);
+        engineSound.setLoop(true);   // Make sure the sound loops
+        engineSound.setRefDistance(20); // Set reference distance for volume attenuation
+        engineSound.setMaxDistance(100); // Max distance where sound is audible
+        engineSound.setDistanceModel('exponential');
+        const enginePosition = new THREE.Vector3(0, 0, -14); // Adjust based on your model
+        engineSound.position.set(enginePosition.x, enginePosition.y, enginePosition.z);
+        // engineSound.setPlaybackRate(1.0); // Normal speed
+        this.engineSound = engineSound;
+
+        this.submarineScene.add(this.engineSound);
+
+        function showAudioPermissionDialog() {
+            const dialog = document.getElementById('audio-permission-dialog');
+
+            dialog.style.display = 'flex';
+
+            // Wait for user to click the allow button
+            document.getElementById('allow-audio-button').addEventListener('click', () => {
+                resumeAudioContext();
+
+                dialog.style.display = 'none';
+            });
+        }
+        let world = this.simulator.world;
+        // Function to resume the AudioContext after user gesture
+        function resumeAudioContext() {
+            if (listener.context.state === 'suspended') {
+                listener.context.resume();
+                world.resumeAudioContext();
+            }
+        }
+
+        showAudioPermissionDialog();
+
+    }
+    // Fade-Out Effect
+    fadeOutAudio(audio, duration) {
+        const fadeTime = duration || 2000; // Default fade-out time in milliseconds
+        const interval = 50; // Interval in milliseconds
+        const fadeStep = interval / fadeTime;
+        let volume = audio.getVolume();
+
+        const fadeOutInterval = setInterval(() => {
+            volume -= fadeStep;
+            if (volume <= 0) {
+                volume = 0;
+                clearInterval(fadeOutInterval);
+                audio.pause(); // Ensure audio is paused when volume is zero
+            }
+            audio.setVolume(volume);
+        }, interval);
+    }
+
+    // Fade-In Effect
+    fadeInAudio(audio, duration) {
+        const fadeTime = duration || 2000; // Default fade-in time in milliseconds
+        const interval = 50; // Interval in milliseconds
+        const fadeStep = interval / fadeTime;
+        let volume = 0;
+
+        audio.setVolume(volume);
+        audio.play(); // Ensure audio is playing
+
+        const fadeInInterval = setInterval(() => {
+            volume += fadeStep;
+            if (volume >= 1) {
+                volume = 1;
+                clearInterval(fadeInInterval);
+            }
+            audio.setVolume(volume);
+        }, interval);
+    }
+
+    setFanSound(rps) {
+        // Define the base playback rate
+        const baseRate = 1.0; // Normal speed
+
+        // Define the maximum playback rate
+        const maxRate = 2.0; // Max speed, can be adjusted
+
+        // Calculate the playback rate based on RPS
+        const playbackRate = baseRate + (rps / 10) * (maxRate - baseRate);
+
+        // Apply the playback rate to the sound
+        this.engineSound.setPlaybackRate(playbackRate);
+        if (rps === 0) {
+            // Fade out the engine sound
+            this.fadeOutAudio(this.engineSound, 2000); // Fade out over 2 seconds
+        } else {
+            if (!this.engineSound.isPlaying) {
+                // Fade in the engine sound
+                this.fadeInAudio(this.engineSound, 1000); // Fade in over 2 seconds
+            }
+        }
+    }
+
+
+    update() {
+        if (this.simulator.camera.instance.position.y < WATER_LEVEL) {
+            // Camera is underwater
+            if (this.engineSound.getRolloffFactor() !== ROLLOFF_FACTOR_WATER) {
+                this.engineSound.setRolloffFactor(ROLLOFF_FACTOR_WATER);
+            }
+        } else {
+            // Camera is above water
+            if (this.engineSound.getRolloffFactor() !== ROLLOFF_FACTOR_AIR) {
+                this.engineSound.setRolloffFactor(ROLLOFF_FACTOR_AIR);
+            }
+        }
     }
     /**
      * Sets the current submarine data and updates the scene with the corresponding submarine model.

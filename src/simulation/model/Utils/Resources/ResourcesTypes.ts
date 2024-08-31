@@ -31,5 +31,5 @@ export enum ResourceTypes {
      * Represents a cube map texture with multiple faces.
      */
     CubeTexture = 'cubeTexture',
-
+    Audio = 'audio',
 }

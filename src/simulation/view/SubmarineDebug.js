@@ -384,6 +384,7 @@ class SubmarineDebug {
           startButton.enable();
           startButton.name("Resume Simulation");
           pauseBotton.disable();
+          this.simulator.world.submarineView.engineSound.pause();
         }
       },
     };

@@ -38,6 +38,7 @@ class Resources extends EventEmitter {
             gltfLoader: new GLTFLoader(),
             textureLoader: new THREE.TextureLoader(),
             cubeTextureLoader: new THREE.CubeTextureLoader(),
+            audioLoader: new THREE.AudioLoader(),
             dracoLoader: new DRACOLoader(),
         };
     }
@@ -68,6 +69,13 @@ class Resources extends EventEmitter {
                     },
                         (xhr) => { }, // onProgress callback
                         (error) => console.error(`Error loading CubeTexture: ${source.name}`, error));
+                    break;
+                case ResourceTypes.Audio:
+                    this.loaders.audioLoader.load(source.path, (file) => {
+                        this.sourceLoaded(source, file);
+                    },
+                        (xhr) => { }, // onProgress callback
+                        (error) => console.error(`Error loading audio: ${source.name}`, error));
                     break;
                 default:
                     console.warn(`Unknown resource type: ${source.type}`);

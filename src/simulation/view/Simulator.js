@@ -11,6 +11,7 @@ import Environment from "../model/Environment";
 import Physics from "../controller/Physics";
 import Submarines from "../model/Submarines";
 import GUI from 'lil-gui';
+import SubmarineView from '../view/SubmarineView';
 /**
  * Simulator class for managing the WebGL-based simulation environment.
  *

@@ -28,4 +28,7 @@ export enum ResourceNames {
      * This GLTF model represents the Typhoon class submarine in the scene.
      */
     TyphoonSubmarineModel = 'typhoonSubmarineModel',
+    EngineSound = 'engineSound',
+    WavesSound = 'wavesSound',
+    UnderWaterSound = 'underWaterSound',
 }

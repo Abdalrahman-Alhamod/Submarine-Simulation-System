@@ -26,4 +26,7 @@ export var ResourceNames;
      * This GLTF model represents the Typhoon class submarine in the scene.
      */
     ResourceNames["TyphoonSubmarineModel"] = "typhoonSubmarineModel";
+    ResourceNames["EngineSound"] = "engineSound";
+    ResourceNames["WavesSound"] = "wavesSound";
+    ResourceNames["UnderWaterSound"] = "underWaterSound";
 })(ResourceNames || (ResourceNames = {}));

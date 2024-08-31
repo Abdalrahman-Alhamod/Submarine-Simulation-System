@@ -278,7 +278,7 @@ a:visited {
     transform: translate(-50%, -50%);
     font-size: 1.2rem;
     /* Increase font size */
-    background: rgba(30, 30, 30, 0.9);
+    /* background: rgba(30, 30, 30, 0.9); */
     /* Darker background for better visibility */
     padding: 20px;
     border-radius: 10px;
@@ -286,4 +286,39 @@ a:visited {
     /* Ensure it's on top of other elements */
     width: 400px;
     /* Set a fixed width */
+}
+
+#audio-permission-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+#audio-permission-dialog div {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+#allow-audio-button {
+    padding: 10px 20px;
+    margin-top: 10px;
+    cursor: pointer;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+#allow-audio-button:hover {
+    background-color: #218838;
 }

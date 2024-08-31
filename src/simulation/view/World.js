@@ -3,6 +3,8 @@ import SceneEnvironment from "./SceneEnvironment";
 import SubmarineView from "./SubmarineView";
 import * as EnvView from "./environment/EnvView.js";
 import Debug from "./Debug";
+import * as THREE from 'three';
+import { ResourceNames } from '../model/Utils/Resources/ResourcesNames';
 /**
  * World class is responsible for managing the overall scene, including initialization
  * and updating of different components such as the environment.
@@ -66,7 +68,29 @@ class World {
             });
             this.environment = new SceneEnvironment(this.simulator);
             this.submarineView = new SubmarineView(this.simulator);
+            this.simulator.time.startUI();
+
+            const listener = new THREE.AudioListener();
+            const wavesSound = new THREE.Audio(listener);
+            const underwaterSound = new THREE.Audio(listener);
+            this.listener = listener;
+            this.simulator.camera.instance.add(this.listener);
+
+
+            const wavesSoundBuffer = this.resources.getResource(ResourceNames.WavesSound);
+            wavesSound.setBuffer(wavesSoundBuffer);
+            wavesSound.setLoop(true);
+            wavesSound.setVolume(0.1);
+            wavesSound.play()
+            this.wavesSound = wavesSound;
+
+            const underWaterSoundBuffer = this.resources.getResource(ResourceNames.UnderWaterSound);
+            underwaterSound.setBuffer(underWaterSoundBuffer);
+            underwaterSound.setLoop(true);
+            underwaterSound.setVolume(0.1);
+            this.underWaterSound = underwaterSound;
         });
+
         // Test mesh (if needed)
         // const testMesh = new THREE.Mesh(
         //   new THREE.BoxGeometry(1, 1, 1),
@@ -74,6 +98,32 @@ class World {
         // );
         // this.scene.add(testMesh);
     }
+    // Ensure the AudioContext is resumed after user interaction
+    resumeAudioContext() {
+        if (this.listener.context.state === 'suspended') {
+            this.listener.context.resume().then(() => {
+                console.log('AudioContext resumed');
+            });
+        }
+    }
+
+    updateBackgroundSounds() {
+        const yPosition = this.simulator.camera.instance.position.y; // Get the submarine's y position
+        if (!(this.listener.context.state === 'suspended')) {
+            if (yPosition >= 0) { // Assume y >= 0 means above water
+                if (!this.wavesSound.isPlaying) {
+                    this.wavesSound.play(); // Play waves sound if not already playing
+                }
+                this.underWaterSound.pause(); // Stop underwater sound
+            } else { // Assume y < 0 means below water
+                if (!this.underWaterSound.isPlaying) {
+                    this.underWaterSound.play(); // Play underwater sound if not already playing
+                }
+                this.wavesSound.pause(); // Stop waves sound
+            }
+        }
+    }
+
     /**
      * Update method to handle per-frame updates.
      * Called on each frame to update the components in the scene.
@@ -81,6 +131,8 @@ class World {
     update() {
         // Update logic for various components can be added here
         EnvView.update(this.simulator.camera);
+        this.submarineView.update();
+        this.updateBackgroundSounds();
     }
 }
 export default World;

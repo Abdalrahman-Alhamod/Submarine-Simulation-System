@@ -30,4 +30,5 @@ export var ResourceTypes;
      * Represents a cube map texture with multiple faces.
      */
     ResourceTypes["CubeTexture"] = "cubeTexture";
+    ResourceTypes["Audio"] = "audio";
 })(ResourceTypes || (ResourceTypes = {}));

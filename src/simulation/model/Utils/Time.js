@@ -23,6 +23,9 @@ class Time extends EventEmitter {
         this.tickIntervalId = undefined;
         this.isRunning = false;
         // Start the animation frame loop
+
+    }
+    startUI() {
         window.requestAnimationFrame(() => {
             this.tick();
         });
