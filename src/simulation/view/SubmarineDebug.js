@@ -21,6 +21,7 @@ class SubmarineDebug {
     this.submarine = this.simulator.submarines.getCurrentSubmarine();
     this.controlsdPanel = this.simulator.controlGUI.gui;
     this.submarineAttributesPanel = this.simulator.submarineAttributesGUI.gui;
+    this.environmentAttributesPanel = this.simulator.environmentAttributesGUI.gui;
     this.forcesPanel = this.simulator.forcesGUI.gui;
     this.linearMotiondPanel = this.simulator.linearMotionGUI.gui;
     this.angularMotionPanel = this.simulator.angularMotionGUI.gui;
@@ -165,6 +166,15 @@ class SubmarineDebug {
         controller.disable();
       }
     });
+    const environemtAttributesFolder = this.environmentAttributesPanel;
+    this.folders.push(environemtAttributesFolder);
+    const env = this.simulator.environment;
+    environemtAttributesFolder
+      .add(env, "gravity")
+      .name("Gravity (m/s²)");
+    environemtAttributesFolder
+      .add(env, "waterDensity")
+      .name("Water Density (kg/m³)");
     const submarineVariablesFolder = this.controlsdPanel;
     this.folders.push(submarineVariablesFolder);
     const submarineVariables = this.submarine.getState();

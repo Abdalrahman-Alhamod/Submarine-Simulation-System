@@ -3,11 +3,12 @@ import { SubmarineType } from '../model/SubmarineType';
 import { ResourceNames } from '../model/Utils/Resources/ResourcesNames';
 import { Events } from '../controller/Utils/Events';
 import SubmarineDebug from './SubmarineDebug';
-
+import * as SeaFloor from './environment/scene/SeaFloor.js';
+import { enableSubmarineSound } from './environment/scripts/Debug.js';
 const ROLLOFF_FACTOR_WATER = 0.23; // For underwater sound
 const ROLLOFF_FACTOR_AIR = 1; // For above water sound
 const WATER_LEVEL = 0; // Y position of the water surface
-
+import { setCollistionDetection } from './environment/scripts/Debug.js';
 /**
  * Class representing the view of a submarine in the scene.
  * Manages the loading, initialization, and updating of submarine models.
@@ -32,6 +33,7 @@ class SubmarineView {
         this.initSubmarines();
         const submarineType = this.submarineData.getType();
         this.submarineScene = this.items[submarineType];
+        SeaFloor.addSubmarineDebugMesh(this.submarineScene)
         this.scene.add(this.submarineScene);
         new SubmarineDebug(this.simulator);
         this.setupEngineSound();
@@ -147,7 +149,7 @@ class SubmarineView {
             // Fade out the engine sound
             this.fadeOutAudio(this.engineSound, 2000); // Fade out over 2 seconds
         } else {
-            if (!this.engineSound.isPlaying) {
+            if ((!this.engineSound.isPlaying) && enableSubmarineSound) {
                 // Fade in the engine sound
                 this.fadeInAudio(this.engineSound, 1000); // Fade in over 2 seconds
             }
@@ -243,8 +245,77 @@ class SubmarineView {
     * Updates the submarine's position and orientation in the scene based on its current state.
     */
     updateSubmarine() {
-        this.submarineScene.position.copy(this.submarineData.getState().getCurrentPosition());
-        this.submarineScene.quaternion.copy(this.submarineData.getState().getCurrentOrientation());
+        this.updateSubmarineWithCollisionDetection();
+        //  SeaFloor.submarineBoundingBoxScene.position=this.submarineData.getState().getCurrentPosition()
+        // this.submarineScene.position.copy(this.submarineData.getState().getCurrentPosition());
+        // this.submarineScene.quaternion.copy(this.submarineData.getState().getCurrentOrientation());
+    }
+    updateSubmarineWithCollisionDetection() {
+        // Assuming submarineView.submarineData.getState().getCurrentPosition() returns the target position
+        const submarineScene = this.submarineScene;
+        const submarineData = this.submarineData;
+
+        // Get the submarine's target position
+        const targetPosition = submarineData.getState().getCurrentPosition();
+
+        // Create a bounding box for the submarine at its current position
+        let submarineBox = new THREE.Box3().setFromObject(submarineScene);
+
+        // Create a temporary bounding box for the submarine at the target position
+        let tempBox = submarineBox.clone();
+        tempBox.translate(targetPosition.clone().sub(submarineScene.position));
+
+        // Check for potential collision using bounding boxes
+        const potentialBox = SeaFloor.boundingBoxes.find(box => box.intersectsBox(tempBox));
+
+        if (potentialBox) {
+            setCollistionDetection(true);
+
+            // Correct the submarine's position to prevent it from intersecting the sea floor
+            // Calculate the minimum distance to move the submarine out of the sea floor
+            let correctionX = 0, correctionY = 0, correctionZ = 0;
+
+            // Get the difference between tempBox and potentialBox
+            const overlap = tempBox.intersect(potentialBox);
+
+            // Correct Y (vertical) position
+            if (overlap.max.y > potentialBox.max.y) {
+                correctionY = potentialBox.max.y - tempBox.min.y;
+            } else if (overlap.min.y < potentialBox.min.y) {
+                correctionY = potentialBox.min.y - tempBox.max.y;
+            }
+
+            // Correct X position
+            if (overlap.max.x > potentialBox.max.x) {
+                correctionX = potentialBox.max.x - tempBox.min.x;
+            } else if (overlap.min.x < potentialBox.min.x) {
+                correctionX = potentialBox.min.x - tempBox.max.x;
+            }
+
+            // Correct Z position
+            if (overlap.max.z > potentialBox.max.z) {
+                correctionZ = potentialBox.max.z - tempBox.min.z;
+            } else if (overlap.min.z < potentialBox.min.z) {
+                correctionZ = potentialBox.min.z - tempBox.max.z;
+            }
+
+            // Apply corrections
+            submarineScene.position.x += correctionX;
+            submarineScene.position.y += correctionY;
+            submarineScene.position.z += correctionZ;
+
+            // Ensure the submarine's updated position is reflected in its state
+            submarineData.getState().setCurrentPosition(submarineScene.position);
+            SeaFloor.submarineBoundingBoxScene.position.set(submarineScene.position.x, submarineScene.position.y, submarineScene.position.z)
+        } else {
+            setCollistionDetection(false);
+            // No collision detected; update normally
+            submarineScene.position.copy(targetPosition);
+
+            // Update the submarine's position in its state
+            submarineData.getState().setCurrentPosition(submarineScene.position);
+            SeaFloor.submarineBoundingBoxScene.position.set(submarineScene.position.x, submarineScene.position.y, submarineScene.position.z)
+        }
     }
     /**
     * Function to bake rotation into geometry.

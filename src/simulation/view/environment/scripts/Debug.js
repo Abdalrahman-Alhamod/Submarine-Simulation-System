@@ -1,9 +1,9 @@
 import { BufferGeometry, Group, Line, LineBasicMaterial, Vector3 } from "three";
-import { body, camera, cameraForward } from "./Scene.js";
+import { body, camera, cameraForward, scene } from "./Scene.js";
+import { Simulator } from "../EnvView.js";
 import { deltaTime } from "./Time.js";
-
+import * as SeaFloor from "../scene/SeaFloor.js";
 export const debugging = true;
-const axesSize = 0.06;
 
 let showPanel = debugging;
 export let showAll = debugging;
@@ -12,9 +12,25 @@ export let showCpu = debugging;
 export let showMem = debugging;
 export let showPos = debugging;
 export let showCameraType = debugging;
-export let showAxes = debugging;
-export const axes = new Group();
-axes.visible = debugging;
+export let showCollisionDetection = debugging;
+export let isCollisionDetected = false;
+export function setCollistionDetection(value) {
+  isCollisionDetected = value;
+}
+
+export let showSeaBottomBoundBox = false;
+export let showSubmarineBoundBox = false;
+
+export let showAllPanels = true;
+export let showControlsPanel = true;
+export let showSubmarineAttributesPanel = true;
+export let showEnvironmentAttributesPanel = true;
+export let showForcesPanel = true;
+export let showLinearMotionPanel = true;
+export let showAngularMotionPanel = true;
+
+export let enableSubmarineSound = true;
+export let enableEnvironmentSound = true;
 
 export function changeShowAll(value) {
   showAll = value;
@@ -25,35 +41,141 @@ export function allVisible(value) {
   cpuVisible(showAll);
   memVisible(showAll);
   posVisible(showAll);
-  axesVisible(showAll);
+  cameraTypeVisible(showAll);
+  collisionDetectionVisible(showAll);
 }
 export function fpsVisible(value) {
   showFps = value;
-  showPanel = showFps || showCpu || showMem || showPos;
+  showPanel = showFps || showCpu || showMem || showPos || showCameraType || showCollisionDetection;
   debugPanel.style.display = showPanel ? "block" : "none";
   fpsDiv.style.display = showFps ? "block" : "none";
 }
 export function cpuVisible(value) {
   showCpu = value;
-  showPanel = showFps || showCpu || showMem || showPos;
+  showPanel = showFps || showCpu || showMem || showPos || showCameraType || showCollisionDetection;
   debugPanel.style.display = showPanel ? "block" : "none";
   cpuDiv.style.display = showCpu ? "block" : "none";
 }
 export function memVisible(value) {
   showMem = value;
-  showPanel = showFps || showCpu || showMem || showPos;
+  showPanel = showFps || showCpu || showMem || showPos || showCameraType || showCollisionDetection;
   debugPanel.style.display = showPanel ? "block" : "none";
   memDiv.style.display = showMem ? "block" : "none";
 }
 export function posVisible(value) {
   showPos = value;
-  showPanel = showFps || showCpu || showMem || showPos;
+  showPanel = showFps || showCpu || showMem || showPos || showCameraType || showCollisionDetection;
   debugPanel.style.display = showPanel ? "block" : "none";
   posDiv.style.display = showPos ? "block" : "none";
 }
-export function axesVisible(value) {
-  showAxes = value;
-  axes.visible = showAxes;
+export function cameraTypeVisible(value) {
+  showCameraType = value;
+  showPanel = showFps || showCpu || showMem || showPos || showCameraType || showCollisionDetection;
+  debugPanel.style.display = showPanel ? "block" : "none";
+  cameraTypeDiv.style.display = showCameraType ? "block" : "none";
+}
+export function collisionDetectionVisible(value) {
+  showCollisionDetection = value;
+  showPanel = showFps || showCpu || showMem || showPos || showCameraType || showCollisionDetection;
+  debugPanel.style.display = showPanel ? "block" : "none";
+  collisionDetectionDiv.style.display = showCollisionDetection ? "block" : "none";
+}
+export function seaBottomBoundBoxVisible(value) {
+  showSeaBottomBoundBox = value;
+  if (value) {
+    scene.add(SeaFloor.boundingBoxesDebugScene);
+  } else {
+    scene.remove(SeaFloor.boundingBoxesDebugScene)
+  }
+}
+export function submarineBoundBoxBoxVisible(value) {
+  showSubmarineBoundBox = value;
+  if (value) {
+    scene.add(SeaFloor.submarineBoundingBoxScene);
+  } else {
+    scene.remove(SeaFloor.submarineBoundingBoxScene)
+  }
+}
+
+export function changeShowAllPanels(value) {
+  showAllPanels = value;
+}
+export function allPanelsVisible(value) {
+  showAllPanels = value;
+  controlsPanelVisible(showAllPanels);
+  submarineAttributesPanelVisible(showAllPanels);
+  environmentAttributesPanelVisible(showAllPanels);
+  forcesPanelVisible(showAllPanels);
+  linearMotionPanelVisible(showAllPanels);
+  angularMotionPanelVisible(showAllPanels);
+}
+export function controlsPanelVisible(value) {
+  showControlsPanel = value;
+  if (value) {
+    Simulator.controlGUI.gui.show();
+  } else {
+    Simulator.controlGUI.gui.hide()
+  }
+}
+export function submarineAttributesPanelVisible(value) {
+  showSubmarineAttributesPanel = value;
+  if (value) {
+    Simulator.submarineAttributesGUI.gui.show();
+  } else {
+    Simulator.submarineAttributesGUI.gui.hide()
+  }
+}
+export function environmentAttributesPanelVisible(value) {
+  showEnvironmentAttributesPanel = value;
+  if (value) {
+    Simulator.environmentAttributesGUI.gui.show();
+  } else {
+    Simulator.environmentAttributesGUI.gui.hide()
+  }
+}
+export function forcesPanelVisible(value) {
+  showForcesPanel = value;
+  if (value) {
+    Simulator.forcesGUI.gui.show();
+  } else {
+    Simulator.forcesGUI.gui.hide()
+  }
+}
+export function linearMotionPanelVisible(value) {
+  showLinearMotionPanel = value;
+  if (value) {
+    Simulator.linearMotionGUI.gui.show();
+  } else {
+    Simulator.linearMotionGUI.gui.hide()
+  }
+}
+export function angularMotionPanelVisible(value) {
+  showAngularMotionPanel = value;
+  if (value) {
+    Simulator.angularMotionGUI.gui.show();
+  } else {
+    Simulator.angularMotionGUI.gui.hide()
+  }
+}
+
+export function submarineSoundEnable(value) {
+  enableSubmarineSound = value;
+  if (value) {
+    Simulator.world.submarineView.engineSound.play();
+  } else {
+    Simulator.world.submarineView.engineSound.stop()
+  }
+}
+
+export function environmentSoundEnable(value) {
+  enableEnvironmentSound = value;
+  if (value) {
+    Simulator.world.underWaterSound.play();
+    Simulator.world.wavesSound.play();
+  } else {
+    Simulator.world.underWaterSound.stop();
+    Simulator.world.wavesSound.stop();
+  }
 }
 
 const debugPanel = document.createElement("debug");
@@ -62,6 +184,7 @@ const cpuDiv = document.createElement("div");
 const memDiv = document.createElement("div");
 const posDiv = document.createElement("div");
 const cameraTypeDiv = document.createElement("div");
+const collisionDetectionDiv = document.createElement("div");
 
 let fps = 0;
 let frameTime = 0;
@@ -83,32 +206,17 @@ export function Start() {
   cpuDiv.style.display = showCpu ? "block" : "none";
   memDiv.style.display = showMem ? "block" : "none";
   posDiv.style.display = showPos ? "block" : "none";
-  cameraTypeDiv.style.display = "block";
+  cameraTypeDiv.style.display = showCameraType ? "block" : "none";
+  collisionDetectionDiv.style.display = showCollisionDetection ? "block" : "none";
 
   debugPanel.appendChild(fpsDiv);
   debugPanel.appendChild(cpuDiv);
   debugPanel.appendChild(memDiv);
   debugPanel.appendChild(posDiv);
   debugPanel.appendChild(cameraTypeDiv);
+  debugPanel.appendChild(collisionDetectionDiv);
 
   body.appendChild(debugPanel);
-
-  function AxisLine(a, b, color) {
-    let material = new LineBasicMaterial({ color: color });
-    let geometry = new BufferGeometry().setFromPoints([a, b]);
-
-    return new Line(geometry, material);
-  }
-
-  axes.add(
-    AxisLine(new Vector3(0, 0, 0), new Vector3(axesSize, 0, 0), 0xff0000)
-  );
-  axes.add(
-    AxisLine(new Vector3(0, 0, 0), new Vector3(0, axesSize, 0), 0x00ff00)
-  );
-  axes.add(
-    AxisLine(new Vector3(0, 0, 0), new Vector3(0, 0, axesSize), 0x0000ff)
-  );
 
   allVisible(showAll);
 
@@ -164,8 +272,9 @@ export function Update(controlCamera) {
   cameraTypeDiv.textContent =
     "Camera Type: " + (controlCamera.isFreeCamera ? "Free" : "Orbit")
 
-  a = new Vector3().copy(cameraForward);
-  axes.position.set(a.x, a.y, a.z);
+  collisionDetectionDiv.textContent =
+    "Collision: " + (isCollisionDetected ? "Detected" : "None")
+
 }
 
 let beginTime = 0;

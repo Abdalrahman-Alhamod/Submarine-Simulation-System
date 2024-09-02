@@ -5,6 +5,7 @@ import * as EnvView from "./environment/EnvView.js";
 import Debug from "./Debug";
 import * as THREE from 'three';
 import { ResourceNames } from '../model/Utils/Resources/ResourcesNames';
+import { enableEnvironmentSound } from "./environment/scripts/Debug.js";
 /**
  * World class is responsible for managing the overall scene, including initialization
  * and updating of different components such as the environment.
@@ -36,7 +37,15 @@ class World {
             });
             this.simulator.submarineAttributesGUI = new Debug({
                 title: "Submarine Attributes",
-                top: "406px",
+                top: "400px",
+                bottom: "auto",
+                left: "auto",
+                right: "10px",
+                width: 250,
+            });
+            this.simulator.environmentAttributesGUI = new Debug({
+                title: "Environment Attributes",
+                top: "820px",
                 bottom: "auto",
                 left: "auto",
                 right: "10px",
@@ -44,7 +53,7 @@ class World {
             });
             this.simulator.forcesGUI = new Debug({
                 title: "Forces",
-                top: "105px",
+                top: "120px",
                 bottom: "auto",
                 left: "10px",
                 right: "auto",
@@ -52,7 +61,7 @@ class World {
             });
             this.simulator.linearMotionGUI = new Debug({
                 title: "Linear Motion",
-                top: "240px",
+                top: "250px",
                 bottom: "auto",
                 left: "10px",
                 right: "auto",
@@ -60,7 +69,7 @@ class World {
             });
             this.simulator.angularMotionGUI = new Debug({
                 title: "Angular Motion",
-                top: "577px",
+                top: "583px",
                 bottom: "auto",
                 left: "10px",
                 right: "auto",
@@ -101,9 +110,7 @@ class World {
     // Ensure the AudioContext is resumed after user interaction
     resumeAudioContext() {
         if (this.listener.context.state === 'suspended') {
-            this.listener.context.resume().then(() => {
-                console.log('AudioContext resumed');
-            });
+            this.listener.context.resume();
         }
     }
 
@@ -111,12 +118,12 @@ class World {
         const yPosition = this.simulator.camera.instance.position.y; // Get the submarine's y position
         if (!(this.listener.context.state === 'suspended')) {
             if (yPosition >= 0) { // Assume y >= 0 means above water
-                if (!this.wavesSound.isPlaying) {
+                if (!this.wavesSound.isPlaying && enableEnvironmentSound) {
                     this.wavesSound.play(); // Play waves sound if not already playing
                 }
                 this.underWaterSound.pause(); // Stop underwater sound
             } else { // Assume y < 0 means below water
-                if (!this.underWaterSound.isPlaying) {
+                if (!this.underWaterSound.isPlaying && enableEnvironmentSound) {
                     this.underWaterSound.play(); // Play underwater sound if not already playing
                 }
                 this.wavesSound.pause(); // Stop waves sound
@@ -130,7 +137,7 @@ class World {
      */
     update() {
         // Update logic for various components can be added here
-        EnvView.update(this.simulator.camera);
+        EnvView.update(this.simulator);
         this.submarineView.update();
         this.updateBackgroundSounds();
     }

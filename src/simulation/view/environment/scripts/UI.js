@@ -1,5 +1,5 @@
 import { MathUtils } from "three";
-import { allVisible, axesVisible, changeShowAll, cpuVisible, debugging, fpsVisible, memVisible, posVisible, showAll, showAxes, showCpu, showFps, showMem, showPos } from "./Debug.js";
+import { allPanelsVisible, allVisible, angularMotionPanelVisible, cameraTypeVisible, changeShowAll, changeShowAllPanels, collisionDetectionVisible, controlsPanelVisible, cpuVisible, debugging, enableEnvironmentSound, enableSubmarineSound, environmentAttributesPanelVisible, environmentSoundEnable, forcesPanelVisible, fpsVisible, linearMotionPanelVisible, memVisible, posVisible, seaBottomBoundBoxVisible, showAll, showAllPanels, showAngularMotionPanel, showCameraType, showCollisionDetection, showControlsPanel, showCpu, showEnvironmentAttributesPanel, showForcesPanel, showFps, showLinearMotionPanel, showMem, showPos, showSeaBottomBoundBox, showSubmarineAttributesPanel, showSubmarineBoundBox, submarineAttributesPanelVisible, submarineBoundBoxBoxVisible, submarineSoundEnable } from "./Debug.js";
 import { KeyCodes, keysJustPressed } from "./Input.js";
 import { SetAntialias, SetFOV, SetResolution, antialias, body, fov, resMult } from "./Scene.js";
 import { SetLookSensitivityMultiplier, changeDownState, changeUpState, setTouchControls, touchControls } from "./Control.js";
@@ -272,6 +272,9 @@ export function Start() {
     const controlsDiv = newOverlayDiv();
     const videoDiv = newOverlayDiv();
     const debugDiv = newOverlayDiv();
+    const testingDiv = newOverlayDiv();
+    const audioDiv = newOverlayDiv();
+    const panelsDiv = newOverlayDiv();
 
     const aboutDiv = newOverlayDiv();
 
@@ -313,6 +316,9 @@ export function Start() {
     newButton("Controls", settingsDiv, controlsDiv);
     newButton("Video", settingsDiv, videoDiv);
     newButton("Debug", settingsDiv, debugDiv);
+    newButton("Testing", settingsDiv, testingDiv);
+    newButton("Audio", settingsDiv, audioDiv);
+    newButton("Panels", settingsDiv, panelsDiv);
     newButton("Back", settingsDiv, menuDiv, true);
     //#endregion
 
@@ -401,7 +407,7 @@ export function Start() {
     const showFpsIn = new Switch("Show FPS: ", debugDiv, showFps);
     showFpsIn.clickArea.onclick = function () {
         fpsVisible(!showFps)
-        const all = showFps && showCpu && showMem && showPos && showAxes;
+        const all = showFps && showCpu && showMem && showPos && showCameraType && showCollisionDetection;
         changeShowAll(all);
         showAllIn.Change(all)
         showFpsIn.Change(showFps);
@@ -410,7 +416,7 @@ export function Start() {
     const showCpuIn = new Switch("Show CPU usage: ", debugDiv, showCpu);
     showCpuIn.clickArea.onclick = function () {
         cpuVisible(!showCpu)
-        const all = showFps && showCpu && showMem && showPos && showAxes;
+        const all = showFps && showCpu && showMem && showPos && showCameraType && showCollisionDetection;
         changeShowAll(all);
         showAllIn.Change(all)
         showCpuIn.Change(showCpu);
@@ -419,28 +425,37 @@ export function Start() {
     const showMemIn = new Switch("Show memory usage: ", debugDiv, showMem);
     showMemIn.clickArea.onclick = function () {
         memVisible(!showMem)
-        const all = showFps && showCpu && showMem && showPos && showAxes;
+        const all = showFps && showCpu && showMem && showPos && showCameraType && showCollisionDetection;
         changeShowAll(all);
         showAllIn.Change(all)
         showMemIn.Change(showMem);
     }
 
-    const showPosIn = new Switch("Show position: ", debugDiv, showPos);
+    const showPosIn = new Switch("Show camera position: ", debugDiv, showPos);
     showPosIn.clickArea.onclick = function () {
         posVisible(!showPos)
-        const all = showFps && showCpu && showMem && showPos && showAxes;
+        const all = showFps && showCpu && showMem && showPos && showCameraType && showCollisionDetection;
         changeShowAll(all);
         showAllIn.Change(all)
         showPosIn.Change(showPos);
     }
 
-    const showAxesIn = new Switch("Show axes: ", debugDiv, showAxes);
-    showAxesIn.clickArea.onclick = function () {
-        axesVisible(!showAxes)
-        const all = showFps && showCpu && showMem && showPos && showAxes;
+    const showCameraTypeIn = new Switch("Show camera type: ", debugDiv, showCameraType);
+    showCameraTypeIn.clickArea.onclick = function () {
+        cameraTypeVisible(!showCameraType)
+        const all = showFps && showCpu && showMem && showPos && showCameraType && showCollisionDetection;
         changeShowAll(all);
         showAllIn.Change(all)
-        showAxesIn.Change(showAxes);
+        showCameraTypeIn.Change(showCameraType);
+    }
+
+    const showCollisionDetectionIn = new Switch("Show collision detection: ", debugDiv, showCollisionDetection);
+    showCollisionDetectionIn.clickArea.onclick = function () {
+        collisionDetectionVisible(!showCollisionDetection)
+        const all = showFps && showCpu && showMem && showPos && showCameraType && showCollisionDetection;
+        changeShowAll(all);
+        showAllIn.Change(all)
+        showCollisionDetectionIn.Change(showCollisionDetection);
     }
 
     showAllIn.clickArea.onclick = function () {
@@ -450,11 +465,107 @@ export function Start() {
         showCpuIn.Change(showAll);
         showMemIn.Change(showAll);
         showPosIn.Change(showAll);
-        showAxesIn.Change(showAll);
+        showCameraTypeIn.Change(showAll);
+        showCollisionDetectionIn.Change(showAll);
     }
 
     newButton("Back", debugDiv, settingsDiv, true);
     //#endregion
+
+    //#region Testing
+    const showSeaBottomBoundBoxIn = new Switch("Show Sea Bottom Bounding Boxes: ", testingDiv, showSeaBottomBoundBox);
+    showSeaBottomBoundBoxIn.clickArea.onclick = function () {
+        seaBottomBoundBoxVisible(!showSeaBottomBoundBox)
+        showSeaBottomBoundBoxIn.Change(showSeaBottomBoundBox);
+    }
+
+    const showSubmarineBoundBoxIn = new Switch("Show Submarine Bounding Box: ", testingDiv, showSubmarineBoundBox);
+    showSubmarineBoundBoxIn.clickArea.onclick = function () {
+        submarineBoundBoxBoxVisible(!showSubmarineBoundBox)
+        showSubmarineBoundBoxIn.Change(showSubmarineBoundBox);
+    }
+    newButton("Back", testingDiv, settingsDiv, true);
+    //#endregion
+
+    //#region Audio
+    const enableSubmarineSoundIn = new Switch("Submarine sound: ", audioDiv, enableSubmarineSound);
+    enableSubmarineSoundIn.clickArea.onclick = function () {
+        submarineSoundEnable(!enableSubmarineSound)
+        enableSubmarineSoundIn.Change(enableSubmarineSound);
+    }
+    const enableEnvironmentSoundIn = new Switch("Environment sound: ", audioDiv, enableEnvironmentSound);
+    enableEnvironmentSoundIn.clickArea.onclick = function () {
+        environmentSoundEnable(!enableEnvironmentSound)
+        enableEnvironmentSoundIn.Change(enableEnvironmentSound);
+    }
+
+    newButton("Back", audioDiv, settingsDiv, true);
+    //#endregion
+
+    //#region Panels
+    const showAllPanelsIn = new Switch("Show all panels: ", panelsDiv, showAllPanels);
+    showAllPanelsIn.clickArea.onclick = function () {
+        allPanelsVisible(!showAllPanels)
+        showAllPanelsIn.Change(showAllPanels);
+        showControlsPanelIn.Change(showAllPanels);
+        showSubmarineAttributesPanelIn.Change(showAllPanels);
+        showEnvironmentAttributesPanelIn.Change(showAllPanels);
+        showForcesPanelIn.Change(showAllPanels);
+        showLinearMotionPanelIn.Change(showAllPanels);
+        showAngularMotionPanelIn.Change(showAllPanels);
+    }
+    const showControlsPanelIn = new Switch("Show controls panel: ", panelsDiv, showControlsPanel);
+    showControlsPanelIn.clickArea.onclick = function () {
+        controlsPanelVisible(!showControlsPanel)
+        const allPanels = showControlsPanel && showSubmarineAttributesPanel && showEnvironmentAttributesPanel && showForcesPanel && showLinearMotionPanel && showAngularMotionPanel;
+        changeShowAllPanels(allPanels);
+        showAllPanelsIn.Change(allPanels)
+        showControlsPanelIn.Change(showControlsPanel);
+    }
+    const showSubmarineAttributesPanelIn = new Switch("Show submarine attributes panel: ", panelsDiv, showSubmarineAttributesPanel);
+    showSubmarineAttributesPanelIn.clickArea.onclick = function () {
+        submarineAttributesPanelVisible(!showSubmarineAttributesPanel)
+        const allPanels = showControlsPanel && showSubmarineAttributesPanel && showEnvironmentAttributesPanel && showForcesPanel && showLinearMotionPanel && showAngularMotionPanel;
+        changeShowAllPanels(allPanels);
+        showAllPanelsIn.Change(allPanels)
+        showSubmarineAttributesPanelIn.Change(showSubmarineAttributesPanel);
+    }
+    const showEnvironmentAttributesPanelIn = new Switch("Show environment attributes panel: ", panelsDiv, showEnvironmentAttributesPanel);
+    showEnvironmentAttributesPanelIn.clickArea.onclick = function () {
+        environmentAttributesPanelVisible(!showEnvironmentAttributesPanel)
+        const allPanels = showControlsPanel && showSubmarineAttributesPanel && showEnvironmentAttributesPanel && showForcesPanel && showLinearMotionPanel && showAngularMotionPanel;
+        changeShowAllPanels(allPanels);
+        showAllPanelsIn.Change(allPanels)
+        showEnvironmentAttributesPanelIn.Change(showEnvironmentAttributesPanel);
+    }
+    const showForcesPanelIn = new Switch("Show forces panel: ", panelsDiv, showForcesPanel);
+    showForcesPanelIn.clickArea.onclick = function () {
+        forcesPanelVisible(!showForcesPanel)
+        const allPanels = showControlsPanel && showSubmarineAttributesPanel && showEnvironmentAttributesPanel && showForcesPanel && showLinearMotionPanel && showAngularMotionPanel;
+        changeShowAllPanels(allPanels);
+        showAllPanelsIn.Change(allPanels)
+        showForcesPanelIn.Change(showForcesPanel);
+    }
+    const showLinearMotionPanelIn = new Switch("Show linear motion panel: ", panelsDiv, showLinearMotionPanel);
+    showLinearMotionPanelIn.clickArea.onclick = function () {
+        linearMotionPanelVisible(!showLinearMotionPanel)
+        const allPanels = showControlsPanel && showSubmarineAttributesPanel && showEnvironmentAttributesPanel && showForcesPanel && showLinearMotionPanel && showAngularMotionPanel;
+        changeShowAllPanels(allPanels);
+        showAllPanelsIn.Change(allPanels)
+        showLinearMotionPanelIn.Change(showLinearMotionPanel);
+    }
+    const showAngularMotionPanelIn = new Switch("Show angular motion panel: ", panelsDiv, showAngularMotionPanel);
+    showAngularMotionPanelIn.clickArea.onclick = function () {
+        angularMotionPanelVisible(!showAngularMotionPanel)
+        const allPanels = showControlsPanel && showSubmarineAttributesPanel && showEnvironmentAttributesPanel && showForcesPanel && showLinearMotionPanel && showAngularMotionPanel;
+        changeShowAllPanels(allPanels);
+        showAllPanelsIn.Change(allPanels)
+        showAngularMotionPanelIn.Change(showAngularMotionPanel);
+    }
+
+    newButton("Back", panelsDiv, settingsDiv, true);
+    //#endregion
+
 
     //#region Help buttons
     newButton("Keyboard & mouse", helpDiv, keyboardMouseDiv);

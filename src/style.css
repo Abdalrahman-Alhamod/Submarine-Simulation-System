@@ -142,9 +142,10 @@ overlay>div>div>button {
 
 inputDiv {
     text-align: start;
-    vertical-align: middle;
+    /* vertical-align: middle; */
     font-size: 14px;
-    display: inline-block;
+    /* display: inline-block; */
+    display: block;
     margin: 8px;
     background-color: #fff8;
     width: 256px;

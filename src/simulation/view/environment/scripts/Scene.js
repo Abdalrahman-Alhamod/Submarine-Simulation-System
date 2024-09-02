@@ -3,7 +3,6 @@ import * as Skybox from "../scene/Skybox.js";
 import * as Ocean from "../scene/Ocean.js";
 import * as SeaFloor from "../scene/SeaFloor.js";
 import * as Blocks from "../scene/Blocks.js";
-import { axes } from "./Debug.js";
 
 export const body = document.createElement("div");
 
@@ -118,5 +117,4 @@ export function Update() {
     SeaFloor.Update();
 
     renderer.render(scene, camera);
-    renderer.render(axes, staticCamera);
 }

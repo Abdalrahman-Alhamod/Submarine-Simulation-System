@@ -6,7 +6,9 @@ import * as UI from "./scripts/UI.js";
 import * as DEBUG from "./scripts/Debug.js";
 import * as SETTINGS from "./shaders/Settings.js";
 import Camera from '../Camera.js';
+export let Simulator;
 export function init(simulator) {
+  Simulator = simulator;
   TIME.Start();
   SETTINGS.Start();
   SCENE.Start(simulator);
@@ -16,7 +18,8 @@ export function init(simulator) {
   DEBUG.Start();
 }
 
-export function update(controlCamera) {
+export function update(simulator) {
+  const controlCamera = simulator.camera;
   DEBUG.Begin();
 
   TIME.Update();

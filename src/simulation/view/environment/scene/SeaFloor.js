@@ -1,8 +1,9 @@
-import { BufferAttribute, BufferGeometry, MathUtils, Mesh, Vector2, Vector3 } from "three";
+import { BufferAttribute, BufferGeometry, MathUtils, Mesh, Vector2, Vector3, Box3, BoxGeometry, MeshBasicMaterial, Color } from "three";
+import * as THREE from "three";
 import * as oceanMaterials from "../materials/OceanMaterial.js";
 import { Random } from "../scripts/Random.js";
 import { camera } from "../scripts/Scene.js";
-
+import * as Scene from "../scripts/Scene.js";
 const tilesPerAxis = 32;
 const tileSize = 32;
 const tilesRadius = MathUtils.clamp(8, 1, tilesPerAxis / 2);
@@ -12,7 +13,7 @@ const worldSize1 = worldSize + 1;
 const scale = 1;
 const halfSize = tilesPerAxis * tileSize * 0.5 * scale;
 
-const verticalOffset = 100; 
+const verticalOffset = 100;
 
 const base1 = new Vector2(0.003, 500);
 const base2 = new Vector2(0.008, 0.2);
@@ -35,6 +36,10 @@ const reliefPoints =
     ];
 
 const random = new Random();
+
+export const boundingBoxes = []; // Array to store bounding boxes of sea floor tiles
+export const boundingBoxesDebugScene = new THREE.Scene()
+export const submarineBoundingBoxScene = new THREE.Scene()
 
 const offsets = new Float64Array(12);
 for (let i = 0; i < offsets.length; i++) {
@@ -165,7 +170,24 @@ export function Start() {
             }
         }
     }
+    // Function to compute min and max heights for a given tile
+    function computeTileHeights(tileX, tileZ) {
+        let minHeight = Infinity;
+        let maxHeight = -Infinity;
 
+        for (let z = 0; z < tileSize1; z++) {
+            for (let x = 0; x < tileSize1; x++) {
+                let worldX = x + tileX * tileSize;
+                let worldZ = z + tileZ * tileSize;
+                let height = heights[worldZ * worldSize1 + worldX];
+
+                minHeight = Math.min(minHeight, height);
+                maxHeight = Math.max(maxHeight, height);
+            }
+        }
+
+        return { minHeight, maxHeight };
+    }
     for (let tileZ = 0; tileZ < tilesPerAxis; tileZ++) {
         for (let tileX = 0; tileX < tilesPerAxis; tileX++) {
             let vertices = new Float32Array(tileSize1 * tileSize1 * 3);
@@ -200,11 +222,86 @@ export function Start() {
             // mesh.visible = false;
 
             tiles[tileZ * tilesPerAxis + tileX] = mesh;
+
+            // Compute the correct min and max heights for the bounding box
+            const { minHeight, maxHeight } = computeTileHeights(tileX, tileZ);
+
+            // Calculate bounding box positions considering the height variations
+            let min = new Vector3(
+                (tileX * tileSize - halfSize) * scale,
+                minHeight * scale - verticalOffset - 1, // Corrected min height
+                (tileZ * tileSize - halfSize) * scale
+            );
+
+            let max = new Vector3(
+                ((tileX + 1) * tileSize - halfSize) * scale,
+                maxHeight * scale - verticalOffset - 1, // Corrected max height
+                ((tileZ + 1) * tileSize - halfSize) * scale
+            );
+
+            boundingBoxes[tileZ * tilesPerAxis + tileX] = new Box3(min, max);
         }
     }
+    addDebugMeshes();
 }
 
 let lastTilesIndices = new Array();
+
+// Function to create a debug mesh for a bounding box
+function createBoundingBoxDebugMesh(box) {
+    const size = new Vector3().subVectors(box.max, box.min);
+    const geometry = new BoxGeometry(size.x, size.y, size.z);
+    const material = new MeshBasicMaterial({ color: new Color('red'), wireframe: true });
+    const mesh = new Mesh(geometry, material);
+    mesh.position.set(
+        (box.min.x + box.max.x) / 2,
+        (box.min.y + box.max.y) / 2,
+        (box.min.z + box.max.z) / 2
+    );
+    return mesh;
+}
+
+// Add debug meshes to the scene
+function addDebugMeshes() {
+    boundingBoxes.forEach(box => {
+        const debugMesh = createBoundingBoxDebugMesh(box);
+        boundingBoxesDebugScene.add(debugMesh);
+    });
+}
+
+// Function to check if a submarine intersects with any sea floor tile
+export function CheckCollision(submarine) {
+    let submarineBox = new Box3().setFromObject(submarine);
+
+    for (let box of boundingBoxes) {
+        if (box.intersectsBox(submarineBox)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// Function to create a debug mesh for the submarine's bounding box
+export function createSubmarineDebugMesh(submarine) {
+    const submarineBox = new Box3().setFromObject(submarine);
+    const size = new Vector3().subVectors(submarineBox.max, submarineBox.min);
+    const geometry = new BoxGeometry(size.x, size.y, size.z);
+    const material = new MeshBasicMaterial({ color: new Color('blue'), wireframe: true });
+    const mesh = new Mesh(geometry, material);
+    mesh.position.set(
+        (submarineBox.min.x + submarineBox.max.x) / 2,
+        (submarineBox.min.y + submarineBox.max.y) / 2,
+        (submarineBox.min.z + submarineBox.max.z) / 2
+    );
+    return mesh;
+}
+
+// Add debug mesh for the submarine to the scene
+export function addSubmarineDebugMesh(submarine) {
+    const debugMesh = createSubmarineDebugMesh(submarine);
+    submarineBoundingBoxScene.add(debugMesh);
+}
 
 export function Update() {
     let playerTile = MathUtils.clamp(Math.round((camera.position.z + halfSize) / tileSize), tilesRadius, tilesPerAxis - tilesRadius) * tilesPerAxis + MathUtils.clamp(Math.round((camera.position.x + halfSize) / tileSize), tilesRadius, tilesPerAxis - tilesRadius);

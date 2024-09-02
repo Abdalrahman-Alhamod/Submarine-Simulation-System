@@ -190,8 +190,11 @@ export function Update(controlCamera) {
                 targetVector.z += 1;
             }
         }
-        if (keysPressed.includes(KeyCodes.keyC)) {
-            controlCamera.switchCamera();
+
+        document.body.onkeydown = function (event) {
+            if (!event.repeat && event.code == KeyCodes.keyC) {
+                controlCamera.switchCamera();
+            }
         }
 
         if (keysJustPressed.includes(KeyCodes.keyL)) {
