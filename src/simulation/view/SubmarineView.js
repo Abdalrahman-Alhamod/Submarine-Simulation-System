@@ -248,7 +248,7 @@ class SubmarineView {
         this.updateSubmarineWithCollisionDetection();
         //  SeaFloor.submarineBoundingBoxScene.position=this.submarineData.getState().getCurrentPosition()
         // this.submarineScene.position.copy(this.submarineData.getState().getCurrentPosition());
-        // this.submarineScene.quaternion.copy(this.submarineData.getState().getCurrentOrientation());
+        this.submarineScene.quaternion.copy(this.submarineData.getState().getCurrentOrientation());
     }
     updateSubmarineWithCollisionDetection() {
         // Assuming submarineView.submarineData.getState().getCurrentPosition() returns the target position
