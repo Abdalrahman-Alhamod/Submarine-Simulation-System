@@ -5,7 +5,7 @@
  * by the application. Each type is associated with a specific string value.
  *
  * Usage example:
- * ```
+ * ```javascript
  * import { ResourceTypes } from './ResourceTypes';
  *
  * const textureType = ResourceTypes.Texture; // Use the Texture resource type
@@ -20,15 +20,22 @@ export var ResourceTypes;
      * Represents a 3D model in GLTF format.
      */
     ResourceTypes["GLTFModel"] = "gltfModel";
+
     /**
      * Texture resource type.
      * Represents an image or texture file.
      */
     ResourceTypes["Texture"] = "texture";
+
     /**
      * Cube texture resource type.
      * Represents a cube map texture with multiple faces.
      */
     ResourceTypes["CubeTexture"] = "cubeTexture";
+
+    /**
+     * Audio resource type.
+     * Represents an audio file used for sound effects or music in the application.
+     */
     ResourceTypes["Audio"] = "audio";
 })(ResourceTypes || (ResourceTypes = {}));

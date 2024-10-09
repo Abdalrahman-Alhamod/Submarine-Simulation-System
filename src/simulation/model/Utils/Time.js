@@ -1,5 +1,6 @@
 import EventEmitter from "../../controller/Utils/EventEmitter";
 import { Events } from "../../controller/Utils/Events";
+
 /**
  * Time class that manages time-related operations and triggers events on each tick.
  * Extends EventEmitter to handle event-driven architecture.
@@ -23,13 +24,19 @@ class Time extends EventEmitter {
         this.tickIntervalId = undefined;
         this.isRunning = false;
         // Start the animation frame loop
-
     }
+
+    /**
+     * Starts the UI animation frame loop.
+     * Calls the tick method to trigger frame updates.
+     * @private
+     */
     startUI() {
         window.requestAnimationFrame(() => {
             this.tick();
         });
     }
+
     /**
      * Animation frame loop for rendering and updating time-related variables.
      * Triggers 'frameTick' event on each animation frame.
@@ -43,6 +50,7 @@ class Time extends EventEmitter {
             this.tick();
         });
     }
+
     /**
      * Start interval for periodic calculations.
      * Adjust the interval as needed for your specific simulation requirements.
@@ -61,6 +69,7 @@ class Time extends EventEmitter {
             // Example: updateSimulation();
         }, interval);
     }
+
     /**
      * Stop interval for periodic calculations.
      * Call this method when pausing or resetting the simulation.
@@ -72,6 +81,7 @@ class Time extends EventEmitter {
             this.tickIntervalId = undefined;
         }
     }
+
     /**
      * Pause the time-related operations.
      * Call this method when pausing the simulation or stopping time updates.
@@ -82,11 +92,18 @@ class Time extends EventEmitter {
         this.elapsed = Date.now() - this.startTime;
         this.stopInterval();
     }
+
+    /**
+     * Start the time-related operations.
+     * Call this method to begin time updates for the simulation.
+     * @public
+     */
     start() {
         this.isRunning = true;
         this.startTime = Date.now();
         this.startInterval();
     }
+
     /**
      * Resume the time-related operations.
      * Call this method to resume time updates after pausing.
@@ -98,6 +115,7 @@ class Time extends EventEmitter {
         this.startTime = Date.now() - this.elapsed;
         this.startInterval();
     }
+
     /**
      * Reset the time-related variables and intervals.
      * Call this method to reset time and stop ongoing calculations.
@@ -110,6 +128,7 @@ class Time extends EventEmitter {
         this.elapsed = 0;
         this.pause(); // Stop all intervals and animation frames
     }
+
     /**
      * Get the current timestamp in milliseconds.
      * @returns {number} The current timestamp.
@@ -118,6 +137,7 @@ class Time extends EventEmitter {
     getCurrentTime() {
         return this.current;
     }
+
     /**
      * Get the start timestamp when the Time instance was created.
      * @returns {number} The start timestamp.
@@ -126,6 +146,7 @@ class Time extends EventEmitter {
     getStartTime() {
         return this.startTime;
     }
+
     /**
      * Get the time difference between the current frame and the previous frame in milliseconds.
      * @returns {number} The delta time.
@@ -134,6 +155,7 @@ class Time extends EventEmitter {
     getDeltaTime() {
         return this.delta;
     }
+
     /**
      * Get the total elapsed time since the Time instance was created.
      * @returns {number} The elapsed time.
@@ -143,4 +165,5 @@ class Time extends EventEmitter {
         return this.elapsed;
     }
 }
+
 export default Time;

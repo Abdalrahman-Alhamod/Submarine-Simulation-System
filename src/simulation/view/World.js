@@ -6,11 +6,12 @@ import Debug from "./Debug";
 import * as THREE from 'three';
 import { ResourceNames } from '../model/Utils/Resources/ResourcesNames';
 import { enableEnvironmentSound } from "./environment/scripts/Debug.js";
+
 /**
  * World class is responsible for managing the overall scene, including initialization
  * and updating of different components such as the environment.
  *
- *  @class
+ * @class
  */
 class World {
     /**
@@ -25,6 +26,7 @@ class World {
         this.simulator = simulator;
         this.scene = this.simulator.scene;
         this.resources = this.simulator.resources;
+
         // Wait for resources to be ready before setting up the environment
         this.resources.on(Events.ResourcesReady, () => {
             this.simulator.controlGUI = new Debug({
@@ -85,12 +87,11 @@ class World {
             this.listener = listener;
             this.simulator.camera.instance.add(this.listener);
 
-
             const wavesSoundBuffer = this.resources.getResource(ResourceNames.WavesSound);
             wavesSound.setBuffer(wavesSoundBuffer);
             wavesSound.setLoop(true);
             wavesSound.setVolume(0.1);
-            wavesSound.play()
+            wavesSound.play();
             this.wavesSound = wavesSound;
 
             const underWaterSoundBuffer = this.resources.getResource(ResourceNames.UnderWaterSound);
@@ -99,21 +100,24 @@ class World {
             underwaterSound.setVolume(0.1);
             this.underWaterSound = underwaterSound;
         });
-
-        // Test mesh (if needed)
-        // const testMesh = new THREE.Mesh(
-        //   new THREE.BoxGeometry(1, 1, 1),
-        //   new THREE.MeshStandardMaterial()
-        // );
-        // this.scene.add(testMesh);
     }
-    // Ensure the AudioContext is resumed after user interaction
+
+    /**
+     * Ensure the AudioContext is resumed after user interaction.
+     * Resumes the audio context if it is suspended.
+     * @public
+     */
     resumeAudioContext() {
         if (this.listener.context.state === 'suspended') {
             this.listener.context.resume();
         }
     }
 
+    /**
+     * Updates background sounds based on the submarine's position.
+     * Plays or pauses the appropriate sound based on whether the submarine is above or below water.
+     * @public
+     */
     updateBackgroundSounds() {
         const yPosition = this.simulator.camera.instance.position.y; // Get the submarine's y position
         if (!(this.listener.context.state === 'suspended')) {
@@ -134,6 +138,7 @@ class World {
     /**
      * Update method to handle per-frame updates.
      * Called on each frame to update the components in the scene.
+     * @public
      */
     update() {
         // Update logic for various components can be added here
@@ -142,4 +147,5 @@ class World {
         this.updateBackgroundSounds();
     }
 }
+
 export default World;

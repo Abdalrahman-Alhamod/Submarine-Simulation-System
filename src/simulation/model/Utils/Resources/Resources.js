@@ -4,9 +4,14 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import EventEmitter from '../../../controller/Utils/EventEmitter';
 import { ResourceTypes } from './ResourcesTypes';
 import { Events } from '../../../controller/Utils/Events';
+
 /**
  * Resources class for managing and loading various types of assets asynchronously.
  * Extends EventEmitter to handle event-driven architecture.
+ *
+ * This class handles the loading of different types of resources such as models,
+ * textures, cube textures, and audio files. It tracks the loading progress and emits
+ * events when resources are ready for use.
  *
  * @class
  * @extends EventEmitter
@@ -28,6 +33,7 @@ class Resources extends EventEmitter {
         this.setLoaders();
         this.startLoading();
     }
+
     /**
      * Initializes various loaders needed for different resource types.
      *
@@ -42,6 +48,7 @@ class Resources extends EventEmitter {
             dracoLoader: new DRACOLoader(),
         };
     }
+
     /**
      * Starts loading each resource based on its type.
      * Triggers corresponding loaders and handles successful loading with sourceLoaded().
@@ -83,6 +90,7 @@ class Resources extends EventEmitter {
             }
         }
     }
+
     /**
      * Handles successful loading of a resource.
      * Stores the loaded file in this.items with the source name and triggers 'ready' event
@@ -101,10 +109,18 @@ class Resources extends EventEmitter {
         }
     }
 
+    /**
+     * Emits progress updates for the loading process.
+     * This method calculates the loading progress and triggers the corresponding
+     * event to notify listeners about the current loading status.
+     *
+     * @private
+     */
     emitProgress() {
         this.progress = this.loaded / this.toLoad;
         this.trigger(Events.ResourceProgress);
     }
+
     /**
      * Retrieves a loaded resource by its name.
      * The name can be a string or a value from the ResourceNames enum.
@@ -116,4 +132,5 @@ class Resources extends EventEmitter {
         return this.items[name];
     }
 }
+
 export default Resources;

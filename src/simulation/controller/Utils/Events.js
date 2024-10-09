@@ -5,7 +5,7 @@
  * the application. Each event name is associated with a specific string value.
  *
  * Usage example:
- * ```
+ * ```javascript
  * import { Events } from './Events';
  *
  * const eventName = Events.Resize; // Use the Resize event name
@@ -21,6 +21,7 @@ export var Events;
      * This event is triggered whenever the browser window dimensions change.
      */
     Events["Resize"] = "resize";
+
     /**
      * Event emitted on each frame tick.
      *
@@ -28,6 +29,7 @@ export var Events;
      * typically 60 times per second in modern browsers.
      */
     Events["FrameTick"] = "frameTick";
+
     /**
      * Event emitted on each clock tick interval.
      *
@@ -35,6 +37,7 @@ export var Events;
      * parameter in the `Time` class, for example, every 10 milliseconds.
      */
     Events["ClockTick"] = "clockTick";
+
     /**
     * Event emitted when all resources are loaded and ready for use.
     *
@@ -42,6 +45,7 @@ export var Events;
     * have been successfully loaded and are ready for application use.
     */
     Events["ResourcesReady"] = "resourcesReady";
+
     /**
      * Event emitted when switching between different submarine instances.
      *
@@ -49,6 +53,7 @@ export var Events;
      * one submarine to another, allowing for dynamic submarine selection.
      */
     Events["SwitchSubmarine"] = "switchSubmarine";
+
     /**
      * Event emitted when the state of the submarine is updated.
      *
@@ -56,5 +61,12 @@ export var Events;
      * position, orientation, velocity) of the submarine during simulation.
      */
     Events["SubmarineUpdate"] = "submarineUpdate";
+
+    /**
+     * Event emitted to track the loading progress of resources.
+     *
+     * This event is triggered to provide feedback on the progress of resource loading,
+     * useful for displaying loading indicators or progress bars.
+     */
     Events["ResourceProgress"] = "resourceProgress";
 })(Events || (Events = {}));
