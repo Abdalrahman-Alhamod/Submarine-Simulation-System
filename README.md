@@ -1,5 +1,28 @@
 # Submarine Simulation System 🛥️
 
+<div align="center">
+
+![GitHub License](https://img.shields.io/github/license/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![Node Version](https://img.shields.io/badge/node-%3E%3D%2014.0.0-brightgreen)
+![Vite](https://img.shields.io/badge/Bundler-Vite-ff69b4)
+![Contributors](https://img.shields.io/github/contributors/Abdalrahman-Alhamod/Submarine-Simulator)
+![GitHub Forks](https://img.shields.io/github/forks/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![GitHub Stars](https://img.shields.io/github/stars/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![GitHub Last Commit](https://img.shields.io/github/last-commit/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![GitHub Repo Size](https://img.shields.io/github/repo-size/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![GitHub Language Count](https://img.shields.io/github/languages/count/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![GitHub Code Size](https://img.shields.io/github/languages/code-size/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![GitHub Issues Closed](https://img.shields.io/github/issues-closed/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![GitHub Contributors](https://img.shields.io/github/contributors/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![GitHub Watchers](https://img.shields.io/github/watchers/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-blue)
+![Platform](https://img.shields.io/badge/platform-Web-lightgrey)
+![Open Issues](https://img.shields.io/github/issues/Abdalrahman-Alhamod/Submarine-Simulation-System)
+![Closed Issues](https://img.shields.io/github/issues-closed/Abdalrahman-Alhamod/Submarine-Simulation-System)
+
+</div>
+
+
 ![Project Screenshot](./screenshots/1.png)
 
 Welcome to the **Submarine Simulation System**! This project is a real-time 3D submarine simulation developed for a college project. It provides users with an immersive experience navigating various submarine models in a realistic, interactive ocean environment. This system was built with scientific precision in mind, incorporating advanced physics, hydrodynamics, and fluid mechanics to ensure accuracy. 🌊
